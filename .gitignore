@@ -2,6 +2,8 @@
 .env.*
 !.env.example
 .venv/
+.venv-airflow/
+.backups/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -17,3 +19,5 @@ models/
 logs/
 *.db
 *.sqlite*
+
+.e2e/

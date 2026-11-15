@@ -1,0 +1,43 @@
+{
+  "respuesta": {
+    "version_modelo": "1",
+    "predicciones": [
+      {
+        "familia_id": "abarrotes",
+        "venta_esperada": 1443.8718504646363,
+        "cantidad_sugerida": 1598
+      },
+      {
+        "familia_id": "bebidas",
+        "venta_esperada": 1339.1928907821534,
+        "cantidad_sugerida": 1480
+      }
+    ],
+    "tienda_id": 5,
+    "fecha": "2026-03-01",
+    "calidad": {
+      "estado": "advertencia",
+      "observaciones": [
+        {
+          "campo": "familias",
+          "accion": "advertir",
+          "detalle": "Solicitud parcial: solo se pronosticarán las familias recibidas; faltan bebe, carnes, cuidado_personal, frutas_verduras, lacteos, licores, limpieza, mascotas, panaderia, snacks. No se imputan promociones."
+        }
+      ]
+    }
+  },
+  "continua_sin_mlflow": true,
+  "registros_prediccion_confirmados": 4,
+  "runs_antes": 14,
+  "runs_despues": 14,
+  "aliases_sin_cambios": {
+    "champion": "1"
+  },
+  "pruebas": "PostgreSQL temporal, modelo champion real leído sin entrenar ni registrar",
+  "tipo_fallo": "simulacion de ConnectionError en consulta de Registry; no se detuvo MLflow principal",
+  "pytest": {
+    "passed": 192,
+    "skipped": 0,
+    "warnings": 7
+  }
+}

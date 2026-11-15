@@ -1,0 +1,133 @@
+{
+  "baseline": "media_semanal_cuantil_empirico",
+  "ventana_dias": 56,
+  "inicio": "2026-01-04",
+  "fin": "2026-02-28",
+  "entrenamiento_hasta": "2026-01-03",
+  "protocolo": "diario: predecir D, incorporar observaciones D después",
+  "metricas": {
+    "registros": 6720,
+    "mae": 53.64735863095238,
+    "rmse": 95.58959978303888,
+    "wape": 0.26171856000081306,
+    "costo_total": 239897.9,
+    "costo_medio": 35.69909226190476,
+    "costo_sugerido_media": 292502.1
+  },
+  "por_familia": {
+    "abarrotes": {
+      "registros": 560,
+      "mae": 144.40200892857143,
+      "rmse": 210.77272194968768,
+      "wape": 0.2577629184078746,
+      "costo_total": 33285.6,
+      "costo_medio": 59.43857142857143,
+      "costo_sugerido_media": 34727.2
+    },
+    "bebe": {
+      "registros": 560,
+      "mae": 10.289285714285715,
+      "rmse": 15.100234299270232,
+      "wape": 0.2669199054986798,
+      "costo_total": 3071.7000000000003,
+      "costo_medio": 5.485178571428572,
+      "costo_sugerido_media": 3986.5
+    },
+    "bebidas": {
+      "registros": 560,
+      "mae": 123.92410714285714,
+      "rmse": 177.3806562447592,
+      "wape": 0.2815931279063162,
+      "costo_total": 29703.4,
+      "costo_medio": 53.041785714285716,
+      "costo_sugerido_media": 31611.2
+    },
+    "carnes": {
+      "registros": 560,
+      "mae": 43.24285714285714,
+      "rmse": 68.18948946292446,
+      "wape": 0.31062083119548484,
+      "costo_total": 31667.0,
+      "costo_medio": 56.54821428571429,
+      "costo_sugerido_media": 45979.5
+    },
+    "cuidado_personal": {
+      "registros": 560,
+      "mae": 34.86651785714286,
+      "rmse": 47.80203608652938,
+      "wape": 0.2572530599876151,
+      "costo_total": 5758.7,
+      "costo_medio": 10.283392857142857,
+      "costo_sugerido_media": 8147.6
+    },
+    "frutas_verduras": {
+      "registros": 560,
+      "mae": 48.74464285714286,
+      "rmse": 69.44148961471603,
+      "wape": 0.2202152376649779,
+      "costo_total": 34544.0,
+      "costo_medio": 61.68571428571428,
+      "costo_sugerido_media": 44283.0
+    },
+    "lacteos": {
+      "registros": 560,
+      "mae": 55.2546875,
+      "rmse": 77.82044691920856,
+      "wape": 0.22235446503639722,
+      "costo_total": 32647.8,
+      "costo_medio": 58.29964285714286,
+      "costo_sugerido_media": 35010.2
+    },
+    "licores": {
+      "registros": 560,
+      "mae": 30.212053571428573,
+      "rmse": 44.389034500973004,
+      "wape": 0.40004610801097135,
+      "costo_total": 6829.400000000001,
+      "costo_medio": 12.195357142857144,
+      "costo_sugerido_media": 7410.6
+    },
+    "limpieza": {
+      "registros": 560,
+      "mae": 44.72410714285714,
+      "rmse": 65.1467269933527,
+      "wape": 0.2724439513102503,
+      "costo_total": 7283.700000000001,
+      "costo_medio": 13.006607142857144,
+      "costo_sugerido_media": 10181.9
+    },
+    "mascotas": {
+      "registros": 560,
+      "mae": 9.115401785714285,
+      "rmse": 12.827424887368135,
+      "wape": 0.2749744128420599,
+      "costo_total": 2075.8,
+      "costo_medio": 3.7067857142857146,
+      "costo_sugerido_media": 2492.2
+    },
+    "panaderia": {
+      "registros": 560,
+      "mae": 46.911160714285714,
+      "rmse": 66.32293996854654,
+      "wape": 0.2464699866774248,
+      "costo_total": 35560.0,
+      "costo_medio": 63.5,
+      "costo_sugerido_media": 54355.0
+    },
+    "snacks": {
+      "registros": 560,
+      "mae": 52.081473214285715,
+      "rmse": 70.28985170953354,
+      "wape": 0.24431732509047044,
+      "costo_total": 17470.8,
+      "costo_medio": 31.197857142857142,
+      "costo_sugerido_media": 14317.199999999999
+    }
+  },
+  "sha256_insumos": {
+    "historico_ventas.csv": "573c3e358242717da6c19d42ab38ff83aa2c2fec9368c55220dd07822554beda",
+    "costos.csv": "0baee4424f183f0394aaf0e06f5ca633f3b5fe9a77c6985fc1d1a2b628ac00e4",
+    "tiendas.csv": "ea80d5dcd98cc9dcddff34234a196787dc4f45317e41596cf7b577301df96a1c",
+    "familias.csv": "cd52ebf6613d4eabd8227d3e9305ff833ace0a83b40b81b6668f726121495ce1"
+  }
+}

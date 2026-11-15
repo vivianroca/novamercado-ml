@@ -1,0 +1,21 @@
+{
+  "experimento": "NovaMercado",
+  "run_id": "a65d9a88bf3d4d1383ac665ff66355a0",
+  "estado": "FINISHED",
+  "tracking_uri": "http://127.0.0.1:5001",
+  "parametros_verificados": 9,
+  "metricas_verificadas": 91,
+  "datasets_verificados": 4,
+  "artefactos_verificados": [
+    "evaluacion/reporte.json",
+    "linaje/manifest.json",
+    "baseline/configuracion.json",
+    "codigo/ml/baseline.py",
+    "codigo/ml/datos.py",
+    "codigo/ml/evaluacion.py",
+    "codigo/ml/tracking.py",
+    "codigo/requirements.txt"
+  ],
+  "sin_entrenamiento": true,
+  "sin_promocion": true
+}

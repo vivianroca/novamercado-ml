@@ -1,0 +1,99 @@
+{
+  "proyecto": "novamercado-e2e-a2ceb1fc97",
+  "puertos": {
+    "api": 57787,
+    "mlflow": 57788,
+    "airflow": 57789
+  },
+  "principal_antes": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "etapas": {
+    "bootstrap": {
+      "segundos": 65.08495633403072,
+      "limite": 600,
+      "registry_inicial": {
+        "run_ids": [],
+        "modelos": []
+      },
+      "modelo": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    }
+  },
+  "estado": "fallido",
+  "etapa_actual": "Simulación diaria: 140 días, errores inéditos y reentrenamientos periódicos",
+  "error": "AssertionError: ({'nombre': 'novamercado-histgradientboosting', 'alias': 'champion', 'version': '1'}, {'estado': 'exitoso', 'promovido': True, 'version': '3', 'motivo': 'Costo 1108.00 vs 31011.00; cumple mejora y controles'})",
+  "principal_despues": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_intacto": true
+}

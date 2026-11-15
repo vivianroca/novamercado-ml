@@ -4,3 +4,10 @@ pydantic==2.11.4
 psycopg[binary]==3.2.9
 pytest==8.3.5
 httpx==0.28.1
+mlflow==3.17.2
+scikit-learn==1.7.2
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+joblib==1.5.2
+threadpoolctl==3.6.0

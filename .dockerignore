@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 .venv
+.venv-airflow
+.backups
 **/__pycache__
 .pytest_cache
 data
@@ -14,3 +16,5 @@ logs
 evidencias
 *.db
 *.sqlite*
+
+.e2e/

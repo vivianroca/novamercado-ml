@@ -1,0 +1,124 @@
+{
+  "fecha": "2026-11-15",
+  "requisito": "R26",
+  "resultado": "verificado",
+  "fuente": {
+    "remote": "origin",
+    "branch": "dev",
+    "commit": "ae44fd722a6ba43d027f33f53d2cabb1919fbd37",
+    "clone_path": "/private/tmp/novamercado-r26-origin-dev",
+    "working_tree_clean": true
+  },
+  "preflight_compose": {
+    "resultado": "PASS",
+    "project": "novamercado-r26-origin-dev-53cea6",
+    "ports_host_loopback": {
+      "api": 59402,
+      "mlflow": 59403,
+      "airflow": 59404
+    },
+    "image_tags": [
+      "novamercado-r26-046bb8-api:1.0.0",
+      "novamercado-r26-046bb8-airflow:3.3.2"
+    ],
+    "volumes": [
+      "novamercado-r26-origin-dev-53cea6_airflow-auth",
+      "novamercado-r26-origin-dev-53cea6_airflow-db",
+      "novamercado-r26-origin-dev-53cea6_airflow-logs",
+      "novamercado-r26-origin-dev-53cea6_airflow-work",
+      "novamercado-r26-origin-dev-53cea6_mlflow-artifacts",
+      "novamercado-r26-origin-dev-53cea6_mlflow-metadata",
+      "novamercado-r26-origin-dev-53cea6_model-cache",
+      "novamercado-r26-origin-dev-53cea6_product-db"
+    ],
+    "volumes_preexistentes_compartidos": false,
+    "image_tag_collision_with_main": false,
+    "ports_collide_with_main": false,
+    "postgres_product_and_airflow_separate": true,
+    "all_bind_mounts_read_only": true,
+    "data_outside_clone": true,
+    "data_mount_source": "/Users/vivianroca/Documents/galileo/Product Development/Lab2/novamercado-ml/data",
+    "data_excluded_from_build_context": true,
+    "build_context_bytes_observed": {
+      "api": 109730,
+      "airflow": 115120
+    }
+  },
+  "arranque_readme": {
+    "command": "docker compose up --build -d",
+    "product_init": "inicializado automáticamente desde Registry vacío; exit code 0",
+    "mlflow_initialization": "experimento NovaMercado creado; registrado novamercado-histgradientboosting v1 y asignado champion",
+    "model_run_id": "da9fee4860a2408fa962337b1cf46baa",
+    "decision_run_id": "b52126569c3b4cd0810bd99ff191ad78",
+    "health_first_start": {
+      "http_status": 200,
+      "body": {"estado": "ok"},
+      "reached_within_10_minutes": true,
+      "exact_elapsed_seconds_instrumented": false
+    },
+    "modelo_first_start": {
+      "http_status": 200,
+      "body": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    }
+  },
+  "persistencia_tras_reinicio": {
+    "operacion_readme": ["docker compose stop", "docker compose up -d"],
+    "observacion_prueba_sintetica": {
+      "primera_respuesta_http": 200,
+      "primer_registros_guardados": 1,
+      "reenvio_antes_de_reinicio_http": 200,
+      "reenvio_antes_de_reinicio_registros_guardados": 0,
+      "reenvio_despues_de_reinicio_http": 200,
+      "reenvio_despues_de_reinicio_registros_guardados": 0,
+      "valores_de_entrada_omitidos": true
+    },
+    "health_despues_de_reinicio": {"http_status": 200, "body": {"estado": "ok"}},
+    "modelo_despues_de_reinicio": {
+      "http_status": 200,
+      "body": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    },
+    "product_init_despues_de_reinicio": "reutilizado v1; exit code 0",
+    "mlflow_runs_aislados_despues_de_reinicio": 2,
+    "versiones_modelo_aislado": [["1", "da9fee4860a2408fa962337b1cf46baa"]],
+    "alias_champion_aislado": "1",
+    "bootstrap_duplicado": false
+  },
+  "entorno_principal": {
+    "mlflow_runs_antes_despues": [15, 15],
+    "aliases_antes_despues": [{"champion": "1"}, {"champion": "1"}],
+    "model_versions_antes_despues": [
+      [["1", "644650a470024476a8926b64837c5984"], ["2", "939ed42d45744c1490ce08e7772d3336"]],
+      [["1", "644650a470024476a8926b64837c5984"], ["2", "939ed42d45744c1490ce08e7772d3336"]]
+    ],
+    "namespace_volumenes_principales_sin_colision_en_preflight": true,
+    "volumenes_principales_al_final": [
+      "novamercado_airflow-auth",
+      "novamercado_airflow-db",
+      "novamercado_airflow-logs",
+      "novamercado_airflow-work",
+      "novamercado_mlflow-artifacts",
+      "novamercado_mlflow-metadata",
+      "novamercado_model-cache",
+      "novamercado_product-db"
+    ],
+    "servicios_principales_seguian_activos": true,
+    "recursos_principales_modificados": false
+  },
+  "diferencias_respecto_al_readme": [
+    "API_PORT cambió de 8000 a 59402; MLflow y Airflow usan 59403 y 59404 para evitar los puertos ocupados por el principal.",
+    "COMPOSE_PROJECT_NAME y un COMPOSE_FILE temporal agregaron un override; el comando README `docker compose up --build -d` se mantuvo. El override da nombre e imágenes exclusivas; Compose prefijó todos los volúmenes con el proyecto aislado.",
+    "DATA_DIR apunta al data/ local fuera del clon mediante bind de solo lectura; README permite cambiar DATA_DIR. No se copiaron CSV al clon ni a las imágenes.",
+    "El bucle README consulta fijo el puerto 8000; se adaptó su URL a 59402. No se ejecutó la verificación contra el endpoint del entorno principal.",
+    "Los marcadores de .env.example se sustituyeron por credenciales temporales locales, según el paso de configuración del README."
+  ],
+  "pasos_manuales_de_inicializacion_adicionales": false,
+  "estado_final_entorno_r26": "contenedores detenidos con docker compose stop; ocho volúmenes aislados conservados, sin down ni eliminación"
+}

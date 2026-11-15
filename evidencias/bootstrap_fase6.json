@@ -1,0 +1,46 @@
+{
+  "bootstrap": {
+    "servicio": "product-init",
+    "pruebas_primer_modelo": "entrenamiento y promoción sustituidos; sin entrenamientos reales",
+    "reutilizacion_real": {
+      "estado": "reutilizado",
+      "version": "1",
+      "ejecuciones_verificadas": 2
+    },
+    "concurrencia": "lock compartido en model-cache",
+    "recuperacion": "checkpoint del candidato previo a promoción"
+  },
+  "reinicios_reales": [
+    "product-db",
+    "api",
+    "mlflow"
+  ],
+  "despues_reinicio": {
+    "health": "ok",
+    "champion": "1",
+    "runs_NovaMercado": 14,
+    "dag_runs": 0,
+    "filas_producto": {
+      "solicitudes": 0,
+      "observaciones": 0,
+      "predicciones": 0
+    }
+  },
+  "persistencia": {
+    "volumenes_existentes_conservados": true,
+    "nota": "La base del producto estaba vacía; persistencia de registros cubierta en PostgreSQL aislado por pytest."
+  },
+  "pytest": {
+    "passed": 268,
+    "skipped": 0,
+    "deselected": 2,
+    "motivo_exclusion": "Pruebas que ejecutan reentrenamientos de DAG",
+    "duracion_segundos": 39.782
+  },
+  "compose": "config válido; imagen construida; API healthy",
+  "pendientes": [
+    "Primer entrenamiento real desde Registry vacío",
+    "Medición health ok <=10 minutos desde arranque limpio",
+    "Ciclo de reentrenamiento real del stack (no autorizado en esta solicitud)"
+  ]
+}

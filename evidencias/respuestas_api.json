@@ -1,0 +1,76 @@
+{
+  "proposito": "Ejemplos de cuerpos HTTP para R30. Se conserva la procedencia de cada respuesta para distinguir serving real de contrato con dobles.",
+  "respuestas_contrato_fastapi_testclient": {
+    "procedencia": "Capturadas invocando las rutas FastAPI con TestClient y dependencias sustituibles, como en tests/test_endpoints.py. Predictor fijo de prueba (version 3) y registro sustituible; no representan una inferencia ni escritura en PostgreSQL real.",
+    "prediccion_200": {
+      "request": {
+        "tienda_id": 5,
+        "fecha": "2025-11-17",
+        "familias": [
+          {"familia_id": "abarrotes", "en_promocion": 0},
+          {"familia_id": "lacteos", "en_promocion": 8}
+        ]
+      },
+      "status": 200,
+      "response": {
+        "version_modelo": "3",
+        "predicciones": [
+          {"familia_id": "abarrotes", "venta_esperada": 612.4, "cantidad_sugerida": 640},
+          {"familia_id": "lacteos", "venta_esperada": 100.0, "cantidad_sugerida": 90}
+        ],
+        "tienda_id": 5,
+        "fecha": "2025-11-17",
+        "calidad": {"estado": "ok", "observaciones": []}
+      }
+    },
+    "observaciones_200_corregida": {
+      "request": {
+        "tienda_id": 5,
+        "fecha": "2025-11-17",
+        "ventas": [{"familia_id": "abarrotes", "ventas": "994"}]
+      },
+      "status": 200,
+      "response": {
+        "registros_guardados": 1,
+        "calidad": {
+          "estado": "corregido",
+          "observaciones": [
+            {"campo": "ventas[0].ventas", "accion": "reparar", "detalle": "Se interpretó '994' como 994"}
+          ]
+        }
+      },
+      "limite": "El conteo 1 procede del doble de registro; idempotencia real se evidencia por separado en fase7_integral.json y auditoria_p1.json."
+    },
+    "prediccion_422": {
+      "request": {
+        "tienda_id": 5,
+        "fecha": "2025-11-17",
+        "familias": [{"familia_id": "abarrotes", "en_promocion": -4}]
+      },
+      "status": 422,
+      "response": {"detail": "familias[0].en_promocion: no se admiten valores negativos"}
+    },
+    "observaciones_422": {
+      "request": {
+        "tienda_id": 5,
+        "fecha": "2025-11-17",
+        "ventas": [{"familia_id": "abarrotes", "ventas": -4}]
+      },
+      "status": 422,
+      "response": {"detail": "ventas[0].ventas: no se admiten valores negativos"}
+    }
+  },
+  "prediccion_champion_compose_aislado": {
+    "procedencia": "Respuesta capturada por el runner Compose aislado durante la aceptación de Fase 7; modelo HistGradientBoosting servido desde Registry aislado. La serie del escenario de resiliencia es sintética.",
+    "request": {"tienda_id": 1, "fecha": "2025-07-14", "familias": [{"familia_id": "pan", "en_promocion": 0}]},
+    "status": 200,
+    "response": {
+      "version_modelo": "2",
+      "predicciones": [{"familia_id": "pan", "venta_esperada": 389.2980308851761, "cantidad_sugerida": 397}],
+      "tienda_id": 1,
+      "fecha": "2025-07-14",
+      "calidad": {"estado": "ok", "observaciones": []}
+    },
+    "evidencia_fuente": "fase7_resiliencia.json, etapa actualizacion_servida; promoción 1→2 medida en 13.243808 s desde el fin del DAG."
+  }
+}

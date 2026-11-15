@@ -1,0 +1,16 @@
+{
+  "airflow": "3.3.2",
+  "url": "http://127.0.0.1:8080",
+  "ui_http": 200,
+  "autenticacion_verificada": true,
+  "dag": "novamercado_reentrenamiento",
+  "registrado_en_api_y_cli": true,
+  "pausado": true,
+  "errores_importacion": false,
+  "ejecuciones_dag": 0,
+  "airflow_init_exit_code": 0,
+  "servicios_iniciados": ["airflow-db", "airflow-init", "airflow-apiserver", "airflow-dag-processor", "airflow-scheduler"],
+  "servicios_producto_iniciados": false,
+  "volumenes_eliminados": 0,
+  "credenciales": "Archivo local .env ignorado por Git; no incluidas en esta evidencia"
+}

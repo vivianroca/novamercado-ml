@@ -1,0 +1,22 @@
+{
+  "servidor": "3.17.2",
+  "cliente": "3.17.2",
+  "experimento": "NovaMercado",
+  "runs_previos_conservados": 3,
+  "runs_actuales": 4,
+  "baseline_original": "a65d9a88bf3d4d1383ac665ff66355a0",
+  "baseline_visible": true,
+  "metricas_baseline": 91,
+  "respaldo_local_ignorado": ".backups/mlflow-antes-3.17.2/",
+  "integridad_backup_sqlite": "ok",
+  "artefactos_previos_verificados_sha256": 15,
+  "compatibilidad_registry_aliases": "crear versiones, asignar/cambiar/eliminar alias: verificado; metadata temporal eliminada",
+  "regresion_pytest": 131,
+  "pruebas_compatibilidad": 4,
+  "pruebas_fallidas": 0,
+  "sin_promocion": true,
+  "volumenes_conservados": [
+    "novamercado_mlflow-metadata",
+    "novamercado_mlflow-artifacts"
+  ]
+}
