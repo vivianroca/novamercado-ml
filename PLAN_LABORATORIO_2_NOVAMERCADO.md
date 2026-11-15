@@ -389,3 +389,27 @@ de validación completa. El resto de R01–R31 sigue pendiente de funcionamiento
 Las dependencias transitivas aún no están bloqueadas. No se implementaron
 endpoints del contrato, limpieza, persistencia de negocio, modelos, DAG ni bootstrap.
 Siguiente fase: contrato FastAPI y política de calidad (Fase 2).
+
+### Fase 2.1 — Esquemas y normalización
+
+- Implementados `app/schemas/solicitudes.py` y `app/calidad/normalizacion.py`:
+  solicitudes canónicas, calidad por campo y rechazo explicativo preparado para 422.
+- Políticas E01–E10 y casos generales documentados en `DECISIONES.md`.
+- Evidencia: `.venv/bin/python -m pytest -q`, Python 3.12: **49 passed**,
+  incluidos los 12 JSON docentes. Sin servidor ni paquete MLflow.
+- R02–R05 y R28 avanzan parcialmente; siguen pendientes la integración HTTP,
+  las respuestas completas y las pruebas de endpoints. R08 no se declara cerrado:
+  la idempotencia persistida pertenece a Fase 3.
+- Sin persistencia, modelos, DAG, construcción ni arranque de contenedores.
+
+### Fase 2.2 — Endpoints de predicción y observaciones
+
+- Implementados ambos POST del anexo, reutilizando normalización, con esquemas
+  de respuesta, códigos 200/422 y protocolos sustituibles de predicción/registro.
+- Sin backend configurado responden 503, sin simular resultados o guardados.
+- Evidencia: `.venv/bin/python -m pytest -q`: **91 passed**, una advertencia de
+  obsolescencia de Starlette/AnyIO. Incluye contratos HTTP, entradas defectuosas,
+  normalización delegada, indisponibilidad y validación de resultados del proveedor.
+- R01, R03–R05 avanzan con pruebas HTTP sin MLflow. No se declaran cerrados R01/R07/R08:
+  faltan predicción real y persistencia/idempotencia. Endpoints administrativos y
+  salud/modelo también siguen pendientes. No se implementaron ML ni persistencia.

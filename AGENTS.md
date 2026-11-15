@@ -13,4 +13,7 @@ Trabajar una fase por solicitud. No adelantar lógica de fases posteriores.
 - No afirmar funcionamiento sin pruebas. Actualizar documentación y matriz con evidencia.
 - No construir ni arrancar contenedores salvo autorización del usuario.
 
-Estado: Fase 1, esqueleto. Sin endpoints, modelo, DAG ni bootstrap de negocio.
+Estado: Fase 2.2, esquemas, normalización y dos endpoints POST de negocio.
+Proveedores sustituibles; sin DB/modelo configurados se responde 503, sin inventar
+resultados. Sin persistencia, ML, DAG ni bootstrap de negocio.
+Pruebas: `.venv/bin/python -m pytest -q` (Python 3.12).
