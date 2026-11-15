@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 .venv/
+.venv-airflow/
 .backups/
 __pycache__/
 *.py[cod]

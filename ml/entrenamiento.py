@@ -5,7 +5,6 @@ from datetime import date
 import json
 from pathlib import Path
 import platform
-import subprocess
 import tempfile
 
 import joblib
@@ -17,13 +16,14 @@ import sklearn
 
 from ml.datos import cargar_datos
 from ml.features import construir_matriz, NOMBRES
-from ml.histgradient import evaluar_histgradient
+from ml.histgradient import evaluar_histgradient, evaluar_modelo_congelado
 from ml.modelo_inventario import InventarioHGB
-from ml.promocion import evaluar_champion
-from ml.tracking import EXPERIMENTO, INSUMOS, RAIZ, sha256
+from ml.promocion import evaluar_champion, ReferenciaEvaluada, _reporte
+from ml.tracking import EXPERIMENTO, INSUMOS, RAIZ, sha256, proveniencia_git
 
 
-def entrenar_y_registrar(data_dir, inicio, fin, tracking_uri, salida):
+def entrenar_y_registrar(data_dir, inicio, fin, tracking_uri, salida, *, promover=True,
+                        nombre_modelo="novamercado-histgradientboosting", linaje_extra=None):
     historial, costos = cargar_datos(data_dir)
     x, ventas, contexto = construir_matriz(data_dir)
     if {(v.fecha, v.tienda_id, v.familia_id) for v in historial} != {(v.fecha, v.tienda_id, v.familia_id) for v in ventas}:
@@ -33,20 +33,24 @@ def entrenar_y_registrar(data_dir, inicio, fin, tracking_uri, salida):
     reporte["sha256_insumos"] = hashes
     codigos = ["ml/features.py", "ml/histgradient.py", "ml/modelo_inventario.py", "ml/entrenamiento.py",
                "ml/baseline.py", "ml/evaluacion.py", "ml/datos.py", "ml/promocion.py", "requirements.txt"]
+    commit, dirty = proveniencia_git()
     linaje = {"sha256_insumos": hashes, "sha256_codigo": {c: sha256(RAIZ / c) for c in codigos},
-        "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=RAIZ, text=True).strip(),
-        "git_modificado": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=RAIZ, text=True).strip()),
+        "git_commit": commit, "git_modificado": dirty,
         "python": platform.python_version(), "sklearn": sklearn.__version__, "mlflow": mlflow.__version__,
         "ajuste_hasta": reporte["ajuste_hasta"], "calibracion_fin": reporte["calibracion_fin"],
         "validacion_inicio": reporte["inicio"], "validacion_fin": reporte["fin"]}
+    if linaje_extra:
+        linaje["snapshot_producto"] = linaje_extra
     bundle = {"estimador": modelo, "features": NOMBRES,
         "ajustes_codificados": {contexto.familias[f]: a for f, a in reporte["ajustes_por_familia"].items()}}
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_registry_uri(tracking_uri)
     mlflow.set_experiment(EXPERIMENTO)
     with mlflow.start_run(run_name="histgradientboosting-calendario-rezagos") as run:
-        mlflow.set_tags({"novamercado.tipo": "candidato",
-                         "mlflow.source.git.commit": linaje["git_commit"]})
+        mlflow.set_tags({k: v for k, v in {"novamercado.tipo": "candidato",
+                         "mlflow.source.git.commit": linaje["git_commit"]}.items() if v is not None})
+        if linaje_extra and linaje_extra.get("airflow_run_id"):
+            mlflow.set_tag("novamercado.airflow_run_id", linaje_extra["airflow_run_id"])
         mlflow.log_params({**reporte["parametros"], "inicio_validacion": reporte["inicio"],
             "fin_validacion": reporte["fin"], "ajuste_hasta": reporte["ajuste_hasta"],
             "calibracion_inicio": reporte["calibracion_inicio"], "calibracion_fin": reporte["calibracion_fin"],
@@ -81,7 +85,7 @@ def entrenar_y_registrar(data_dir, inicio, fin, tracking_uri, salida):
                 name="histgradientboosting", python_model=InventarioHGB(),
                 artifacts={"bundle": str(ruta)}, code_paths=[str(RAIZ / "ml")],
                 signature=signature, pip_requirements=str(RAIZ / "requirements.txt"),
-                registered_model_name="novamercado-histgradientboosting",
+                registered_model_name=nombre_modelo,
             )
         # Verificar round-trip del modelo real guardado, sin tocar alias alguno.
         cargado = mlflow.pyfunc.load_model(info.model_uri)
@@ -90,8 +94,27 @@ def entrenar_y_registrar(data_dir, inicio, fin, tracking_uri, salida):
         reporte["mlflow"] = {"run_id": run.info.run_id, "experimento": EXPERIMENTO,
                              "model_uri": info.model_uri, "version": str(info.registered_model_version)}
     # Evaluar solo después de confirmar que terminó el run del candidato.
-    reporte["decision_champion"] = evaluar_champion(
-        mlflow.MlflowClient(), "novamercado-histgradientboosting", reporte["mlflow"]["version"])
+    cliente = mlflow.MlflowClient()
+    referencia = None
+    vigente = cliente.get_registered_model(nombre_modelo).aliases.get("champion")
+    if vigente:
+        try:
+            origen = _reporte(cliente, nombre_modelo, vigente)
+            with tempfile.TemporaryDirectory() as t:
+                v = cliente.get_model_version(nombre_modelo, vigente)
+                meta = json.loads(Path(cliente.download_artifacts(v.run_id, "configuracion/features_y_sugeridos.json", t)).read_text())
+            esperado = {"features": NOMBRES, "familias": contexto.familias, "tiendas": sorted(contexto.tiendas),
+                        "ciudades": contexto.ciudades, "formatos": contexto.formatos}
+            if any(meta.get(k) != valor for k, valor in esperado.items()):
+                raise ValueError("Codificación de variables del champion incompatible")
+            congelado = mlflow.pyfunc.load_model(f"models:/{nombre_modelo}/{vigente}")
+            referencia = ReferenciaEvaluada(str(vigente), evaluar_modelo_congelado(
+                congelado, x, ventas, costos, origen, reporte))
+        except Exception as error:
+            referencia = ReferenciaEvaluada(str(vigente), error=f"No se pudo reevaluar champion: {type(error).__name__}: {error}")
+    reporte["referencia_champion"] = vars(referencia) if referencia else None
+    if promover:
+        reporte["decision_champion"] = evaluar_champion(cliente, nombre_modelo, reporte["mlflow"]["version"], referencia)
     Path(salida).parent.mkdir(parents=True, exist_ok=True)
     Path(salida).write_text(json.dumps(reporte, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
     return reporte

@@ -36,3 +36,10 @@ def obtener_registro() -> RegistroObservaciones:
 
 def obtener_registro_predicciones() -> RegistroPredicciones:
     return RepositorioProducto()
+
+
+def obtener_reentrenamientos():
+    from app.servicios.reentrenamientos import ClienteReentrenamientos
+    return ClienteReentrenamientos(os.environ.get("AIRFLOW_BASE_URL"),
+        os.environ.get("AIRFLOW_USER") or os.environ.get("AIRFLOW_ADMIN_USER"),
+        os.environ.get("AIRFLOW_PASSWORD") or os.environ.get("AIRFLOW_ADMIN_PASSWORD"))

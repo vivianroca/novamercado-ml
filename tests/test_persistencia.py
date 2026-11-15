@@ -5,6 +5,8 @@ Se crea y elimina una base temporal; nunca se truncan tablas de la base indicada
 
 from concurrent.futures import ThreadPoolExecutor
 import os
+import json
+from pathlib import Path
 from uuid import uuid4
 
 import psycopg
@@ -170,7 +172,7 @@ def test_fallo_commit_no_devuelve_conteo():
 
 
 @pytest.fixture
-def api_real(db, monkeypatch, tmp_path):
+def api_real(db, monkeypatch, tmp_path, request):
     """Cableado de producción: sin dependency_overrides ni repositorios sustitutos."""
     from fastapi.testclient import TestClient
     from app.main import crear_app
@@ -187,7 +189,12 @@ def api_real(db, monkeypatch, tmp_path):
     # Catálogos mínimos locales. No se requiere GES para probar el cableado real.
     (tmp_path / "tiendas.csv").write_text("tienda_id\n5\n")
     (tmp_path / "familias.csv").write_text("familia_id,nombre\nlacteos,Lácteos\nz,Z\n")
-    monkeypatch.setenv("DATA_DIR", str(tmp_path))
+    if "modelo_serving" in request.fixturenames:
+        # Lifespan captura la configuración al arrancar, no en la primera predicción.
+        modelo = request.getfixturevalue("modelo_serving")
+        monkeypatch.setenv("DATA_DIR", str(modelo.data_dir))
+    else:
+        monkeypatch.setenv("DATA_DIR", str(tmp_path))
     monkeypatch.setenv("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN", "postgresql://no-usar/airflow")
     app = crear_app()
     assert app.dependency_overrides == {}
@@ -276,3 +283,67 @@ def test_prediccion_champion_real_persistida_y_continua_sin_mlflow(api_real, mod
                          contenido["predicciones"][0]["cantidad_sugerida"]) for f in filas)
     # Un segundo request reutiliza el mismo servicio y snapshot cargado.
     assert cliente.app.state.predictor is predictor
+
+
+@pytest.mark.parametrize("fallar", [False, True])
+def test_dag_airflow_real_reentrena_o_conserva_champion(db, modelo_serving, entorno_mlflow,
+                                                      ejecutar_sdk_airflow, tmp_path, fallar):
+    import sys
+    from datetime import date, timedelta
+    from app.calidad.normalizacion import Catalogos, normalizar_observaciones
+    from ml.reentrenamiento import leer_fuente_producto
+    repo = RepositorioProducto(db)
+    catalogos = Catalogos(frozenset({5}), frozenset({"pan"}), {"pan": "pan"})
+    for i in range(66):
+        fecha = date(2026, 1, 9) + timedelta(days=i)
+        entrada_obs = {"tienda_id": 5, "fecha": fecha.isoformat(),
+                       "ventas": [{"familia_id": "pan", "ventas": 25 + i % 7 * 4}]}
+        s, q = normalizar_observaciones(entrada_obs, catalogos)
+        repo.guardar(entrada_obs, s, q)
+    observaciones, _ = leer_fuente_producto(db)
+    assert len(observaciones) == 66
+    env = dict(os.environ, NOVAMERCADO_ROOT=str(Path(__file__).resolve().parents[1]),
+               NOVAMERCADO_PYTHON=sys.executable, RETRAIN_WORK_DIR=str(tmp_path / "trabajo"),
+               NOVAMERCADO_PRUEBA_AISLADA="1", DATA_DIR=str(modelo_serving.data_dir),
+               MODEL_NAME=modelo_serving.nombre, MLFLOW_TRACKING_URI=entorno_mlflow.uri,
+               MLFLOW_REGISTRY_URI=entorno_mlflow.uri, MLFLOW_DISABLE_AGENT_HINT="1")
+    with db() as conexion:
+        env.update(PRODUCT_DB_HOST=conexion.info.host, PRODUCT_DB_PORT=str(conexion.info.port),
+                   PRODUCT_DB_NAME=conexion.info.dbname, PRODUCT_DB_USER=conexion.info.user,
+                   PRODUCT_DB_PASSWORD=conexion.info.password)
+    cliente = entorno_mlflow.cliente
+    anterior = cliente.get_registered_model(modelo_serving.nombre).aliases["champion"]
+    if fallar:
+        env["PRODUCT_DB_NAME"] += "_inexistente"
+    args = ["--ejecutar"] + (["--esperar-fallo"] if fallar else [])
+    resultado = ejecutar_sdk_airflow(*args, env=env)
+    if fallar:
+        assert resultado["estado"] == "failed"
+        assert cliente.get_registered_model(modelo_serving.nombre).aliases["champion"] == anterior
+    else:
+        assert resultado["estado"] == "success"
+        decisiones = list((tmp_path / "trabajo").rglob("decision.json"))
+        assert len(decisiones) == 1
+        decision = json.loads(decisiones[0].read_text())
+        assert decision["estado"] == "exitoso"
+        actual = cliente.get_registered_model(modelo_serving.nombre).aliases["champion"]
+        assert actual == (decision["version"] if decision["promovido"] else anterior)
+        for artefacto in ("comparacion_modelos.csv", "decision_champion.md", "evaluacion/champion_reevaluado.json"):
+            assert cliente.download_artifacts(decision["evaluacion_run_id"], artefacto, str(tmp_path))
+        reportes = list((tmp_path / "trabajo").rglob("entrenamiento.json"))
+        r = json.loads(reportes[0].read_text())
+        assert r["fin"] == "2026-03-15"
+        assert r["referencia_champion"]["reporte"]["inicio"] == r["inicio"]
+        # Preparar un champion idéntico al candidato SOLO en este tracking aislado.
+        # Repetir la evaluación con datos iguales debe conservarlo por empate de costo.
+        version_fija = r["mlflow"]["version"]
+        cliente.set_registered_model_alias(modelo_serving.nombre, "champion", version_fija)
+        previas = set((tmp_path / "trabajo").rglob("decision.json"))
+        repetir = ejecutar_sdk_airflow("--ejecutar", env=env)
+        assert repetir["estado"] == "success"
+        nuevas = set((tmp_path / "trabajo").rglob("decision.json")) - previas
+        assert len(nuevas) == 1
+        nueva = json.loads(nuevas.pop().read_text())
+        assert nueva["promovido"] is False and nueva["version"] == version_fija
+        assert "Costo sin mejora" in nueva["motivo"]
+        assert cliente.get_registered_model(modelo_serving.nombre).aliases["champion"] == version_fija

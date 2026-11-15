@@ -18,6 +18,16 @@ def sha256(ruta):
     return hashlib.sha256(Path(ruta).read_bytes()).hexdigest()
 
 
+def proveniencia_git():
+    """Las imágenes no incluyen .git; no inventar un commit si no está disponible."""
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=RAIZ, text=True, stderr=subprocess.DEVNULL).strip()
+        dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=RAIZ, text=True, stderr=subprocess.DEVNULL).strip())
+        return commit, dirty
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return os.environ.get("NOVAMERCADO_GIT_COMMIT"), None
+
+
 def preparar_registro(reporte, data_dir):
     ruta = Path(reporte)
     evaluacion = json.loads(ruta.read_text())
@@ -39,13 +49,12 @@ def preparar_registro(reporte, data_dir):
                 raise ValueError("Métrica no numérica o no finita")
             metricas[prefijo + nombre] = valor
     codigos = ["ml/baseline.py", "ml/datos.py", "ml/evaluacion.py", "ml/tracking.py", "requirements.txt"]
-    def git(*args):
-        return subprocess.check_output(["git", *args], cwd=RAIZ, text=True).strip()
+    commit, dirty = proveniencia_git()
     linaje = {
         "sha256_insumos": hashes, "sha256_reporte": sha256(ruta),
         "codigo_al_registrar": {nombre: sha256(RAIZ / nombre) for nombre in codigos},
-        "git_commit_al_registrar": git("rev-parse", "HEAD"),
-        "git_modificado_al_registrar": bool(git("status", "--porcelain")),
+        "git_commit_al_registrar": commit,
+        "git_modificado_al_registrar": dirty,
         "python": platform.python_version(),
         "operacion": "registro_de_evaluacion_preexistente_sin_entrenamiento",
     }
@@ -81,12 +90,12 @@ def registrar_baseline(reporte, data_dir="data", tracking_uri=None, cliente=None
             identificador = experimento.experiment_id
     else:
         identificador = experimento.experiment_id
-    run = cliente.create_run(identificador, tags={
+    run = cliente.create_run(identificador, tags={k: v for k, v in {
         "mlflow.runName": "baseline-semanal", "novamercado.tipo": "baseline",
         "novamercado.operacion": "registro_sin_entrenamiento",
         "novamercado.reporte_sha256": linaje["sha256_reporte"],
         "mlflow.source.git.commit": linaje["git_commit_al_registrar"],
-    })
+    }.items() if v is not None})
     run_id = run.info.run_id
     try:
         for nombre, valor in parametros.items():

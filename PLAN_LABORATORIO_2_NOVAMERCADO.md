@@ -69,16 +69,16 @@ El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. 
 | R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Casos con distintas relaciones de costos y explicación | Pendiente |
 | R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | 3 | Capturas/consultas de runs, artefactos, versiones y alias | Pendiente |
 | R13 | Criterio automatizado y explícito de promoción | 3 | `ml/promocion.py`, `tests/test_promocion.py`, `tests/test_promocion_mlflow.py`: mejora, empate, retroceso y error; decisiones auditadas | Verificado |
-| R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | DAG ejecutado, consulta a DB y evidencia de ejecución | Pendiente |
-| R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | POST 202/503, GET estados y GET 404 | Pendiente |
-| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Comparar versiones antes/después con tiempo registrado | Pendiente |
+| R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | DAG SDK 3.3.2 ejecutado con histórico y 66 observaciones PostgreSQL, MLflow aislado; `evidencias/airflow_fase5.json` | Verificado con SDK; stack pendiente |
+| R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | POST 202/503, GET estados y GET 404 | Verificado con Airflow simulado |
+| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Cambio de fuente simulado y HTTP con intervalo real de 30 s; sin ejecutar DAG | Verificado en API aislada; stack pendiente |
 | R17 | Fallo o candidato descartado no afecta modelo vigente | 3 | Simular fallo y no promoción; continuidad de predicciones | Pendiente |
 | R18 | Todo se levanta con `docker compose up` y servicio llamado `mlflow` | 3 | `docker compose config`, `up`, `ps`, curl | Pendiente |
-| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | 3 | Arrancar con volúmenes vacíos y sin intervención | Pendiente |
-| R20 | Arranque posterior: conservar estado, no repetir bootstrap | 3 | Reiniciar sin borrar volúmenes; comparar versiones/datos | Pendiente |
+| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | 3 | product-init y tests/test_bootstrap.py | Implementado y simulado; entrenamiento inicial real pendiente |
+| R20 | Arranque posterior: conservar estado, no repetir bootstrap | 3 | Reinicio real API/DB/MLflow; 14 runs y champion 1; checkpoint y concurrencia probados | Verificado con champion existente |
 | R21 | Versiones fijas de imágenes; ni credenciales ni datos en imagen/repositorio; `.env.example` | 3 | Revisar Compose, Dockerfiles y `git ls-files` | Pendiente |
 | R22 | API sigue prediciendo con modelo cargado si MLflow cae | 3 | Interrumpir MLflow; POST predicción debe funcionar | Pendiente |
-| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | 3 | Prueba cronometrada de caída/recuperación | Pendiente |
+| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | 3 | Sondas inmediatas y caída/recuperación simuladas en tests/test_estado.py | Verificado con dependencias simuladas |
 | R24 | Salud `ok` ≤10 min del arranque (sin contar build) | 4 | Arranque limpio cronometrado | Pendiente |
 | R25 | Reentrenamiento finaliza ≤10 min | 4 | DAG real cronometrado | Pendiente |
 | R26 | README desde cero y ubicación de insumos | 4 | Ejecutar literalmente las instrucciones en entorno limpio | Pendiente |
@@ -578,3 +578,86 @@ con metadata/artefactos persistentes; el PostgreSQL temporal fue detenido.
   `evidencias/prediccion_champion.json`.
 - R22 avanza con caída simulada de transporte; interrupción real del contenedor
   y tiempos de salud quedan pendientes para operación. Sin Airflow ni reentrenamiento.
+
+### Fase 5 — DAG Airflow 3.3.2
+
+- DAG manual `novamercado_reentrenamiento`: tareas entrenar/evaluar y decidir
+  champion; la segunda requiere éxito de la primera. Un run activo, sin cron ni
+  reintentos; timeout global 10 minutos. No se agregaron endpoints administrativos.
+- Snapshot consistente del PostgreSQL del producto, reconciliado por clave con
+  histórico CSV; observaciones prevalecen sin duplicar. Promociones nuevas se
+  recuperan de solicitudes canónicas o quedan ausentes, nunca inventadas.
+- Reutiliza HGB, validación temporal y política 1%/5%/10% en MLflow 3.17.2. Se
+  reevalúa el champion congelado sobre los mismos datos/fechas, sin alterar sus
+  runs históricos. Los dos artefactos de decisión siguen presentes por evaluación.
+- Compose actualizado a api-server, scheduler y dag-processor de Airflow 3.3.2;
+  imagen propia con base fija y virtualenv ML separado, credenciales externas,
+  metastore PostgreSQL independiente y volúmenes de trabajo/auth persistentes.
+- Pruebas con SDK/core Airflow 3.3.2 real: parseo, serialización, dag.test exitoso,
+  repetición con empate de costo que conserva champion y entrenamiento fallido
+  que deja promoción upstream_failed. PostgreSQL real y MLflow aislados.
+- **203 passed, 0 skipped**, once advertencias externas; pip check de ambos
+  entornos y `docker compose config --quiet` correctos. Los tres escenarios de
+  ejecución usan 100 filas históricas sintéticas y 66 observaciones, snapshot 166.
+- Tracking principal sin cambios: 14 runs, versiones 1/2 y champion 1 conservados.
+  Evidencia: `evidencias/airflow_fase5.json`.
+- No se construyó ni arrancó el stack Airflow de Compose. Quedan pendientes la
+  validación operativa en contenedores, endpoints administrativos y mediciones
+  de tiempos/actualización de la API tras DAG dentro del stack completo.
+
+### Arranque limitado de Airflow por Docker Compose
+
+Con autorización del usuario se construyó la imagen 3.3.2 y se levantaron solo
+airflow-db, airflow-init, airflow-apiserver, airflow-dag-processor y airflow-scheduler.
+Inicialización terminó con código 0; DB, API y scheduler healthy. UI HTTP 200 en
+`http://127.0.0.1:8080`, autenticación comprobada, DAG
+`novamercado_reentrenamiento` registrado por CLI y API, sin errores y pausado.
+Conteo de dag_run: 0. No se ejecutaron reentrenamientos ni se borraron volúmenes;
+API/base del producto no iniciadas y MLflow preexistente conservado.
+Credenciales locales de Airflow generadas en `.env` (ignorado y protegido), sin
+incluir secretos en evidencia: `evidencias/airflow_arranque.json`.
+
+
+### Fase 5 — Endpoints administrativos
+
+Implementados POST /admin/reentrenar (202/503) y GET /admin/reentrenar/{id}
+(200/404/503), con adaptador REST v2 Airflow 3.3.2 y resultado terminal en XCom.
+Pruebas: 233 passed, 2 deselected; las excluidas entrenan modelos. Comprobación
+focalizada posterior: 36 passed. Compose válido. Sin reentrenamientos reales:
+Airflow mantiene 0 DagRuns; NovaMercado conserva 14 runs y champion versión 1.
+R15 validado mediante Airflow simulado; integración operativa de trigger y R16
+quedan pendientes de autorización para ejecutar un reentrenamiento real.
+
+
+### Fase 5 — Modelo y salud
+
+Implementados /modelo y /health según PDF. Carga inicial no bloqueante en
+lifespan, refresco máximo 30 s, snapshot servido consistente, continuidad ante
+caída MLflow. Sondas paralelas DB/MLflow/Airflow y estado degradado con motivo.
+Verificación HTTP con fuente simulada e intervalo real: actualización en 30.04 s
+sin reinicio (límite 120 s). Caída/recuperación comprobadas con sondas simuladas.
+Pytest: 246 passed, 10 skipped por falta de TEST_PRODUCT_DB_DSN, 2 deselected
+para no ejecutar reentrenamientos. No se modificó MLflow principal ni se ejecutaron
+DAGs. Evidencia: evidencias/modelo_salud.json. Bootstrap y tiempos del stack
+completo desde cero permanecen pendientes.
+
+
+### Fase 6 — Bootstrap automático y persistencia
+
+Servicio product-init con migración idempotente, carga/validación inicial CSV,
+entrenamiento HGB existente solo sin champion y promoción mediante política
+existente. Lock y checkpoint en model-cache; API depende de éxito del init y
+scheduler saludable, con healthcheck que exige estado ok.
+
+Imagen construida; dos verificaciones operativas en modo --solo-reutilizar
+confirmaron champion 1. Se reiniciaron PostgreSQL producto, API y MLflow sin
+borrar volúmenes; API recuperó health ok, Registry conserva 14 runs y champion 1.
+La DB operativa estaba vacía (0 solicitudes/observaciones/predicciones antes y
+después); registros de negocio comprobados en PostgreSQL aislado mediante pytest.
+Airflow conserva 0 DagRuns. No se ejecutaron reentrenamientos reales.
+
+268 passed, 0 skipped, 2 deselected (pruebas que ejecutan DAG de entrenamiento).
+Corregida fixture de integración para configurar modelo/datos antes del lifespan
+y respetar intervalo máximo 30 s. Evidencia: evidencias/bootstrap_fase6.json.
+Pendientes: primer entrenamiento real desde Registry vacío, readiness <=10 min
+en stack limpio y ciclo DAG completo. No se vaciaron volúmenes para verificarlos.

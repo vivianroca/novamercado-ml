@@ -1,0 +1,22 @@
+{
+  "pruebas": {
+    "passed": 246,
+    "skipped_postgresql_sin_servidor": 10,
+    "deselected_reentrenamientos": 2
+  },
+  "actualizacion_champion": {
+    "fuente": "simulada",
+    "fastapi": "misma instancia sin reinicio",
+    "intervalo_real_segundos": 30,
+    "medicion_segundos": 30.037023875047453,
+    "limite_segundos": 120
+  },
+  "salud": {
+    "contrato": "200 ok o degradado con motivo; 503 sin modelo",
+    "caida_y_recuperacion": "simuladas con intervalo acelerado",
+    "sondas": "sin cach\u00e9; HTTP timeout 3 s; conexi\u00f3n DB 5 s; sentencia DB 3 s"
+  },
+  "mlflow_principal_modificado": false,
+  "reentrenamientos_reales": false,
+  "pendiente": "Certificaci\u00f3n de tiempos del stack completo y arranque desde vol\u00famenes vac\u00edos"
+}

@@ -283,3 +283,92 @@ importar. Pruebas sintéticas se ejecutan sin GES; las pruebas adicionales de lo
 - No se implementa todavía `/health`, Airflow, reentrenamiento ni recuperación
   de arranque offline. Los tiempos operativos de caída/recuperación se medirán
   al integrar salud/operación; la caché de disco no sustituye Registry al arrancar.
+
+## Fase 5 — DAG Airflow 3.3.2
+
+- Dos tareas en orden all_success: entrenar/evaluar sin tocar alias y luego decidir
+  champion. Schedule None, catchup False, max_active_runs 1, retries 0; deadline
+  global 10 min, tareas limitadas a 8m15s/90s y subprocesos a 480s/75s.
+- SDK público `airflow.sdk`, sin leer DB, CSV ni MLflow durante parseo. El código ML
+  se invoca con su propio Python para separar dependencias de Airflow y FastAPI/ML.
+  Solo versión, run_id y ruta a manifiesto viajan por XCom.
+- Snapshot transaccional REPEATABLE READ/READ ONLY del PostgreSQL del producto;
+  no se usa metastore Airflow. Observaciones vigentes reemplazan ventas históricas
+  por clave y las nuevas se agregan una vez. Insumos originales permanecen intactos.
+  Promociones del histórico se conservan; para observaciones nuevas se recupera la
+  última solicitud de predicción por familia, ordenada por creada_en/id. Si no hay,
+  queda ausente (NaN nativo HGB), no se inventan promociones en observaciones.
+- Corte opcional fecha_fin simulada; por defecto última fecha con ventas. Validación
+  móvil de 56 días y calibración de 28 días anterior, sin incorporar D/futuro a rezagos.
+  Hashes originales, snapshot, observaciones, promociones y airflow_run_id dan linaje.
+- Se reevalúa el champion sin fit/recalibración, con la misma matriz causal y casos
+  del candidato. Sus cortes originales deben preceder a la nueva validación. La
+  referencia se audita aparte, sin cambiar el run histórico. Si cambia alias entre
+  reevaluación y decisión, si las codificaciones difieren o falla la reevaluación,
+  se conserva vigente y se informa fallo. Se reutiliza política 1%/5%/10% existente.
+- Un fallo de entrenamiento impide ejecutar promoción; no mejora es una ejecución
+  exitosa con promovido False. Fallos de publicación/alias usan las compensaciones
+  existentes. Mantener un único escritor de promociones (no ejecutar manual y DAG
+  simultáneamente). Un timeout de red que impida confirmar rollback se informa.
+- Compose migra de esqueleto 2.10 a 3.3.2: api-server + scheduler + dag-processor,
+  JWT compartido, SimpleAuth y volúmenes de auth/trabajo. Imagen base fija y virtualenv
+  ML separado. Git ausente en imágenes queda explícitamente desconocido en linaje,
+  nunca se inventa un commit; opcional NOVAMERCADO_GIT_COMMIT aporta identificación.
+- Verificado SDK 3.3.2 real: parseo, serialización y dag.test con PostgreSQL real y
+  MLflow aislado. Casos de ejecución correcta, empate de costo y fallo de entrenamiento
+  conservan lo esperado. No se construyó ni levantó el stack Airflow de Compose;
+  validación de configuración pasó. No se implementaron endpoints administrativos.
+
+
+## Fase 5 — Endpoints administrativos
+
+- POST sin cuerpo devuelve 202 solo tras confirmar el ID; errores de Airflow son 503.
+  Se autentica vía JWT REST v2, activa el DAG pausado y no repite el trigger ante
+  timeout: consulta el mismo ID para evitar duplicados. GET distingue desconocido
+  (404), en curso y resultados terminales (200), e indisponibilidad (503).
+- Finalizador all_done guarda resultado y versión al terminar en XCom. Ante fallo
+  previo vuelve a fallar para no convertir el DagRun en exitoso. Si no se conoce
+  la versión no inventa una: GET devuelve 503. Sigue vigente la restricción de un
+  único escritor de promociones. Consultar no modifica MLflow ni el champion.
+- MockTransport cubre contrato, errores y timeout; fixture bloquea Airflow real.
+  SDK verifica parseo/serialización y finalizador simulado. Regresión: 233 passed,
+  2 deselected (pruebas de entrenamiento real excluidas por instrucción).
+  Comprobación posterior focalizada: 36 passed. No se dispararon DAGs.
+
+
+## Fase 5 — Modelo, salud y actualización sin reinicio
+
+- `/modelo` informa el snapshot cargado (nombre, alias y versión de texto); sin
+  snapshot devuelve 503. Se inicia la carga en lifespan sin bloquear el servidor.
+  Se recupera automáticamente aunque la carga inicial falle, sin exigir predicción.
+- Refresco máximo 30 s, intercambio atómico tras validación y conservación ante
+  fallo. La lectura del snapshot no espera una descarga en curso. Una versión
+  incompatible no aparece como servida y mantiene la salud degradada.
+- `/health`: 503 sin modelo; 200 degradado con motivo si falla DB/MLflow/Airflow
+  o el refresco; 200 ok solo con modelo y todas las dependencias disponibles.
+  Sondas paralelas, sin caché, HTTP 3 s, conexión PostgreSQL 5 s y sentencia 3 s.
+  Airflow verifica los componentes internos, incluso con respuesta HTTP 200.
+- Pruebas HTTP con fuente simulada, sin cambiar Registry ni disparar DAGs; cambio
+  de versión con intervalo real de 30 s y pruebas de caída/recuperación aceleradas.
+  La certificación de tiempos del stack completo y bootstrap permanece pendiente.
+
+
+## Fase 6 — Inicializador del producto
+
+- Servicio one-shot `product-init`, misma imagen y entorno que API; depende de
+  PostgreSQL producto y MLflow, y API espera su éxito y scheduler saludable.
+  Imagen local con etiqueta fija y healthcheck API que exige estado ok.
+- Migración idempotente también en volumen existente; datos publicados montados
+  de solo lectura. Se validan/cargan para entrenar sin generar observaciones
+  operativas artificiales. No se duplica el histórico en otra tabla.
+- Champion READY existente se conserva; solo RESOURCE_DOES_NOT_EXIST significa
+  ausencia. Timeout, permisos y modelo inválido abortan, sin entrenamiento de reemplazo.
+- Arranque vacío reutiliza HGB y política existentes; últimas 56 fechas para
+  validación, ajuste/calibración causales. Checkpoint durable permite reintentar
+  promoción sin fit repetido; cambio de insumos incompleto requiere revisión.
+  El bloqueo fcntl protege inicializadores que comparten model-cache; se conserva
+  la restricción de un único escritor global. Un crash antes del checkpoint puede
+  dejar una versión huérfana: conservarla y revisar, nunca borrar automáticamente.
+- Se añade --solo-reutilizar para verificar el stack sin permitir entrenamientos.
+  Primer modelo simulado en pytest; el entrenamiento inicial real y readiness
+  desde volúmenes vacíos en <=10 min siguen pendientes.

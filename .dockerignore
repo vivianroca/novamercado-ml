@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 .venv
+.venv-airflow
 .backups
 **/__pycache__
 .pytest_cache

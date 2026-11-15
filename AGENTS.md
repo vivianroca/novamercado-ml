@@ -50,3 +50,28 @@ Serving real implementado en `app/servicios/prediccion.py`: singleton por app,
 champion con snapshot modelo/versión y refresco cada 30s; conserva cargado ante
 caída MLflow. Features causales de CSV + observaciones PostgreSQL (DB prevalece),
 sin usar D/futuro ni fechas <= corte de calibración. No hay Airflow ni reentrenamiento.
+
+Fase 5: DAG manual Airflow 3.3.2 en `airflow/dags/reentrenamiento.py`, tres tareas:
+entrenar/evaluar, decidir champion y finalizar resultado. `ml/reentrenamiento.py` reconcilia CSV + DB del
+producto; promoción reutiliza política y reevalúa champion en los mismos casos.
+Endpoints administrativos implementados en `app/api/administracion.py` mediante
+adaptador REST v2 sustituible. Pytest bloquea Airflow real salvo MockTransport.
+Ante prohibición de entrenar usar `pytest tests -q -k 'not dag_airflow_real'`:
+excluye dos pruebas que ejecutan entrenamientos. SDK real se prueba con `.venv-airflow` separado
+(airflow/requirements-test.txt), metastore temporal y MLflow aislado de pytest.
+
+
+Modelo y salud implementados en `app/api/estado.py` y `app/servicios/salud.py`.
+Lifespan inicia carga/refresco en segundo plano; intervalo máximo 30 s. Modelo
+reportado es el snapshot servido; no sustituirlo por una consulta al alias.
+Sin modelo health 503; dependencias caídas con modelo cargado health 200 degradado.
+Sondas de solo lectura con timeouts; nunca ejecutar DAGs desde health.
+Tests de estado simulan fuentes y red; uno espera el intervalo real de 30 s.
+
+
+Fase 6: `app/bootstrap.py` y servicio Compose `product-init` aplican esquema y
+reutilizan champion READY; solo entrenan inicialmente cuando falta. Checkpoint y
+lock en model-cache; nunca confundir error de Registry con modelo inexistente.
+Pruebas bootstrap sustituyen entrenamiento/promoción. Para verificación operativa
+sin entrenar, usar `python -m app.bootstrap --solo-reutilizar`. No ejecutar el
+bootstrap normal contra Registry vacío cuando se prohíben entrenamientos reales.

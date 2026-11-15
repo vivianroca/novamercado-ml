@@ -1,0 +1,28 @@
+{
+  "airflow": "3.3.2",
+  "pruebas": {
+    "regresion_passed": 233,
+    "deselected": 2,
+    "motivo_exclusion": "Ejecutan entrenamientos reales",
+    "focalizadas_passed": 36,
+    "transporte": "httpx.MockTransport"
+  },
+  "contrato": {
+    "POST /admin/reentrenar": [
+      202,
+      503
+    ],
+    "GET /admin/reentrenar/{id}": [
+      200,
+      404,
+      503
+    ]
+  },
+  "comprobacion_solo_lectura": {
+    "dag_runs": 0,
+    "runs_NovaMercado": 14,
+    "champion": "1"
+  },
+  "compose_valido": true,
+  "reentrenamientos_reales_ejecutados": false
+}

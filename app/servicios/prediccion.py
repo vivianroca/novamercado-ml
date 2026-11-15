@@ -131,8 +131,8 @@ class FuenteMLflow:
 
 class CacheChampion:
     def __init__(self, fuente, intervalo=30):
-        if intervalo <= 0:
-            raise ValueError("Intervalo de refresco debe ser positivo")
+        if not np.isfinite(intervalo) or not 0 < intervalo <= 30:
+            raise ValueError("Intervalo de refresco debe estar entre 0 y 30 segundos")
         self.fuente = fuente
         self.intervalo = intervalo
         self._actual = None
@@ -154,21 +154,32 @@ class CacheChampion:
                 logger.warning("Refresco champion falló (%s); se conserva el modelo cargado", self.ultimo_error)
         return self._actual
 
+    @property
+    def actual(self):
+        return self._actual
+
     def _refresco_periodico(self):
+        if self._actual is None:
+            self.refrescar()
         while not self._stop.wait(self.intervalo):
             self.refrescar()
+
+    def iniciar(self):
+        """Arranque no bloqueante, incluso sin modelo o con Registry caído."""
+        if self._thread is not None:
+            return
+        with self._lock:
+            if self._thread is None and not self._stop.is_set():
+                self._thread = threading.Thread(target=self._refresco_periodico, daemon=True, name="champion-refresh")
+                self._thread.start()
 
     def obtener(self):
         if self._actual is None:
             self.refrescar()
         if self._actual is None:
+            self.iniciar()
             raise ServicioNoDisponible("No hay modelo champion cargado")
-        if self._thread is None:
-            with self._lock:
-                if self._thread is not None:
-                    return self._actual
-                self._thread = threading.Thread(target=self._refresco_periodico, daemon=True, name="champion-refresh")
-                self._thread.start()
+        self.iniciar()
         return self._actual
 
     def cerrar(self):

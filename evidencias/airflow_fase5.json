@@ -1,0 +1,61 @@
+{
+  "airflow": "3.3.2",
+  "mlflow": "3.17.2",
+  "dag": "novamercado_reentrenamiento",
+  "pruebas_aprobadas": 203,
+  "pruebas_omitidas": 0,
+  "ejecuciones_sdk_aisladas": [
+    {
+      "airflow": "3.3.2",
+      "dag": "novamercado_reentrenamiento",
+      "tareas": [
+        "decidir_champion",
+        "entrenar_y_evaluar"
+      ],
+      "parseo_y_serializacion": "ok",
+      "estado": "failed",
+      "estados_tareas": {
+        "decidir_champion": "upstream_failed",
+        "entrenar_y_evaluar": "failed"
+      }
+    },
+    {
+      "airflow": "3.3.2",
+      "dag": "novamercado_reentrenamiento",
+      "tareas": [
+        "decidir_champion",
+        "entrenar_y_evaluar"
+      ],
+      "parseo_y_serializacion": "ok",
+      "estado": "success",
+      "estados_tareas": {
+        "decidir_champion": "success",
+        "entrenar_y_evaluar": "success"
+      }
+    }
+  ],
+  "decisiones_aisladas": [
+    {
+      "estado": "exitoso",
+      "promovido": false,
+      "version": "2",
+      "motivo": "Costo sin mejora mínima del 1% (incluye empate o retroceso)",
+      "evaluacion_run_id": "3eb0c175853f434983616b1f35bdd6fb"
+    },
+    {
+      "estado": "exitoso",
+      "promovido": false,
+      "version": "1",
+      "motivo": "mae empeora más del 5%",
+      "evaluacion_run_id": "9367bcb2cfa548d1b5f2be75b8770d0e"
+    }
+  ],
+  "observaciones_postgresql_prueba": 66,
+  "registros_snapshot_prueba": 166,
+  "mlflow_principal_sin_cambios": true,
+  "runs_principales": 14,
+  "champion_principal": "1",
+  "stack_compose_construido": false,
+  "endpoints_administrativos": false,
+  "repeticion_con_costo_igual_conserva_champion": true
+}

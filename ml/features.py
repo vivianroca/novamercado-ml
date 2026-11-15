@@ -61,8 +61,10 @@ class FeaturesCausales:
         for v in ventas:
             self.historial.setdefault((v.tienda_id, v.familia_id), {})[v.fecha] = v.ventas
 
-    def fila(self, tienda_id, familia_id, fecha, en_promocion):
-        if type(en_promocion) is not int or en_promocion < 0:
+    def fila(self, tienda_id, familia_id, fecha, en_promocion, permitir_promocion_faltante=False):
+        if en_promocion is None and permitir_promocion_faltante:
+            en_promocion = np.nan
+        elif type(en_promocion) is not int or en_promocion < 0:
             raise ValueError("Promoción debe ser un entero no negativo conocido en D")
         c = self.contexto
         tienda = c.tiendas[tienda_id]
@@ -96,7 +98,8 @@ def construir_matriz(directorio):
     x, ventas = [], []
     for f in filas:
         venta = Venta(date.fromisoformat(f["fecha"]), int(f["tienda_id"]), f["familia_id"], int(f["ventas"]))
-        x.append(engine.fila(venta.tienda_id, venta.familia_id, venta.fecha, int(f["en_promocion"])))
+        promo = int(f["en_promocion"]) if f["en_promocion"].strip() else None
+        x.append(engine.fila(venta.tienda_id, venta.familia_id, venta.fecha, promo, permitir_promocion_faltante=True))
         ventas.append(venta)
         # Cada serie tiene como máximo una fila diaria; fila() solo consulta fechas < D.
         engine.agregar([venta])

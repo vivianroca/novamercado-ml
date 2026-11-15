@@ -7,7 +7,7 @@ from types import SimpleNamespace as Obj
 
 import pytest
 
-from ml.promocion import decidir, evaluar_champion
+from ml.promocion import decidir, evaluar_champion, ReferenciaEvaluada
 
 
 def reporte(costo=90, mae=10):
@@ -35,6 +35,7 @@ class RegistryPrueba:
         self.fallo_alias_despues = False
         self.fallo_final = False
         self.md_count = 0
+        self.referencias = {}
 
     def get_experiment_by_name(self, nombre): return Obj(experiment_id="1")
     def get_experiment(self, identificador): return Obj(name="NovaMercado")
@@ -59,6 +60,9 @@ class RegistryPrueba:
             if self.md_count == 2 and self.fallo_final:
                 raise OSError("Falló confirmación de artefacto")
         self.artefactos[nombre] = texto
+
+    def log_dict(self, run_id, objeto, nombre):
+        self.referencias[nombre] = objeto
 
     def set_registered_model_alias(self, nombre, alias, version):
         assert set(self.artefactos) == {"comparacion_modelos.csv", "decision_champion.md"}
@@ -201,3 +205,27 @@ def test_run_incompleto_no_puede_promover(estado):
     decision = evaluar_champion(cliente, "modelo", "1")
     assert decision["estado"] == "fallido"
     assert cliente.alias == "2" and not cliente.cambios
+
+
+def test_reevaluacion_en_nuevo_periodo_sin_modificar_run_champion():
+    cliente = RegistryPrueba()
+    origen = copy.deepcopy(cliente.reportes["2"])
+    c = cliente.reportes["1"]
+    c.update(inicio="2026-03-01", fin="2026-04-30", sha256_insumos={"historico_ventas.csv": "snapshot_nuevo"})
+    actualizada = {**copy.deepcopy(origen), "inicio": c["inicio"], "fin": c["fin"],
+                   "sha256_insumos": c["sha256_insumos"], "reevaluado_sin_entrenar": True}
+    d = evaluar_champion(cliente, "modelo", "1", ReferenciaEvaluada("2", actualizada))
+    assert d["promovido"] and cliente.alias == "1"
+    assert cliente.reportes["2"] == origen
+    assert cliente.referencias["evaluacion/champion_reevaluado.json"] == actualizada
+
+
+@pytest.mark.parametrize("defecto", ["version", "cortes", "error"])
+def test_reevaluacion_invalida_conserva_champion(defecto):
+    cliente = RegistryPrueba()
+    r = copy.deepcopy(cliente.reportes["2"])
+    version = "9" if defecto == "version" else "2"
+    if defecto == "cortes": r["calibracion_fin"] = "2026-01-02"
+    referencia = ReferenciaEvaluada(version, r, "Falló evaluación" if defecto == "error" else None)
+    d = evaluar_champion(cliente, "modelo", "1", referencia)
+    assert d["estado"] == "fallido" and cliente.alias == "2" and not cliente.cambios

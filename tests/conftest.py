@@ -16,6 +16,20 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def aislamiento_airflow(monkeypatch):
+    """La suite nunca puede disparar el servicio Airflow del producto."""
+    import httpx
+    from app.servicios.interfaces import ServicioNoDisponible
+    from app.servicios.reentrenamientos import ClienteReentrenamientos
+    original = ClienteReentrenamientos._cliente
+    def cliente_seguro(self):
+        if not isinstance(self.transporte, httpx.MockTransport):
+            raise ServicioNoDisponible("Airflow real bloqueado en pytest; usar transporte simulado")
+        return original(self)
+    monkeypatch.setattr(ClienteReentrenamientos, "_cliente", cliente_seguro)
+
+
+@pytest.fixture(autouse=True)
 def aislamiento_mlflow(tmp_path, monkeypatch):
     import mlflow
 
@@ -191,6 +205,8 @@ def modelo_serving(entorno_mlflow, tmp_path, monkeypatch):
     x, ventas, contexto = construir_matriz(datos)
     estimador, reporte, _ = evaluar_histgradient(x, ventas, {"pan": Costos(1, 2)},
         date(2026, 1, 4), date(2026, 1, 8), parametros={"max_iter": 5, "min_samples_leaf": 2})
+    from ml.tracking import INSUMOS, sha256
+    reporte["sha256_insumos"] = {n: sha256(datos / n) for n in (*INSUMOS, "feriados.csv")}
     bundle = {"estimador": estimador, "features": NOMBRES,
               "ajustes_codificados": {0: reporte["ajustes_por_familia"]["pan"]}}
     ruta = tmp_path / "bundle.joblib"
@@ -205,6 +221,7 @@ def modelo_serving(entorno_mlflow, tmp_path, monkeypatch):
     with mlflow.start_run(run_name="pytest-serving-sintetico"):
         mlflow.log_dict(metadata, "configuracion/features_y_sugeridos.json")
         mlflow.log_dict(reporte, "evaluacion/comparacion.json")
+        mlflow.log_metrics(reporte["metricas"])
         info = mlflow.pyfunc.log_model(name="modelo", python_model=InventarioHGB(),
             artifacts={"bundle": str(ruta)}, registered_model_name=nombre,
             signature=infer_signature(ejemplo, envuelto.predict(None, ejemplo)),
@@ -213,6 +230,22 @@ def modelo_serving(entorno_mlflow, tmp_path, monkeypatch):
     monkeypatch.setenv("DATA_DIR", str(datos))
     monkeypatch.setenv("MODEL_NAME", nombre)
     monkeypatch.setenv("MODEL_CACHE_DIR", str(tmp_path / "cache_modelos"))
-    monkeypatch.setenv("MODEL_REFRESH_SECONDS", "60")
+    monkeypatch.setenv("MODEL_REFRESH_SECONDS", "30")
     return SimpleNamespace(nombre=nombre, version=str(info.registered_model_version),
                            modelo=envuelto, metadata=metadata, data_dir=datos, uri=entorno_mlflow.uri)
+
+
+@pytest.fixture
+def ejecutar_sdk_airflow(tmp_path):
+    raiz = Path(__file__).resolve().parents[1]
+    def ejecutar(*args, env=None):
+        python = Path(os.environ.get("AIRFLOW_TEST_PYTHON", str(raiz / ".venv-airflow/bin/python")))
+        if not python.is_file():
+            pytest.skip("Instalar airflow/requirements-test.txt en .venv-airflow para probar SDK real")
+        salida = tmp_path / "airflow_resultado.json"
+        proceso = subprocess.run([str(python), str(raiz / "airflow/verificar_dag.py"), "--salida", str(salida), *args],
+            cwd=raiz, env=env, capture_output=True, text=True, timeout=180)
+        (tmp_path / "airflow_prueba.log").write_text(proceso.stdout + proceso.stderr)
+        assert proceso.returncode == 0, (proceso.stdout + proceso.stderr)[-14000:]
+        return json.loads(salida.read_text())
+    return ejecutar

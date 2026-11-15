@@ -4,6 +4,7 @@ import argparse
 from contextlib import contextmanager
 import csv
 from datetime import date
+from dataclasses import dataclass
 import fcntl
 import hashlib
 import io
@@ -21,6 +22,13 @@ POLITICA = (
     "Mismas fechas, insumos y casos; métricas finitas, modelo READY, run FINISHED "
     "y ajuste/calibración anteriores a validación. Sin champion se compara con baseline."
 )
+
+
+@dataclass(frozen=True)
+class ReferenciaEvaluada:
+    version: str | None
+    reporte: dict | None = None
+    error: str | None = None
 
 
 @contextmanager
@@ -132,7 +140,7 @@ def _markdown(nombre, candidato, anterior, decision):
             f"Criterio: {POLITICA}\n\nMotivo: {decision['motivo']}\n")
 
 
-def evaluar_champion(cliente, nombre, version):
+def evaluar_champion(cliente, nombre, version, referencia_evaluada=None):
     """Un run de auditoría por evaluación; nunca sobrescribe decisiones anteriores."""
     experimento = cliente.get_experiment_by_name(EXPERIMENTO)
     if experimento is None:
@@ -154,6 +162,18 @@ def evaluar_champion(cliente, nombre, version):
             filas = [("baseline", None, candidato["baseline"]), ("candidato", str(version), candidato)]
             if anterior:
                 referencia = _reporte(cliente, nombre, anterior)
+                if referencia_evaluada is not None:
+                    if referencia_evaluada.error:
+                        raise ValueError(referencia_evaluada.error)
+                    if str(referencia_evaluada.version) != anterior:
+                        raise ValueError("Champion cambió desde su reevaluación")
+                    reevaluado = referencia_evaluada.reporte
+                    for k in ("ajuste_hasta", "calibracion_inicio", "calibracion_fin"):
+                        if reevaluado[k] != referencia[k]:
+                            raise ValueError("La reevaluación alteró cortes de entrenamiento del champion")
+                    if date.fromisoformat(referencia["calibracion_fin"]) >= date.fromisoformat(reevaluado["inicio"]):
+                        raise ValueError("Champion entrenado con datos de la nueva validación")
+                    referencia = reevaluado
                 filas.append(("champion", anterior, referencia))
                 if candidato["sha256_insumos"] != referencia["sha256_insumos"]:
                     raise ValueError("Insumos distintos: reevaluar champion con los mismos datos")
@@ -165,6 +185,8 @@ def evaluar_champion(cliente, nombre, version):
             decision.update(estado="exitoso", promovido=False, motivo=motivo)
             # Ambos artefactos deben existir ANTES de intentar cambiar el alias.
             cliente.log_text(run_id, _csv(filas), "comparacion_modelos.csv")
+            if anterior and referencia_evaluada is not None:
+                cliente.log_dict(run_id, referencia, "evaluacion/champion_reevaluado.json")
             plan = {**decision, "estado": "pendiente_aplicacion" if promover else "exitoso",
                     "motivo": motivo + ("; promoción pendiente de confirmar" if promover else "")}
             cliente.log_text(run_id, _markdown(nombre, version, anterior, plan), "decision_champion.md")

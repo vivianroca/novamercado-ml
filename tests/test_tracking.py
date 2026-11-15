@@ -100,3 +100,11 @@ def test_fallo_subida_marca_failed(reporte):
     with pytest.raises(RuntimeError, match="subida fallida"):
         registrar_baseline(ruta, directorio, cliente=cliente)
     assert cliente.estados == ["FAILED"]
+
+
+def test_linaje_sin_git_en_imagen_no_inventa_commit(monkeypatch):
+    from ml.tracking import proveniencia_git
+    def ausente(*args, **kwargs): raise FileNotFoundError("git no instalado")
+    monkeypatch.setattr("ml.tracking.subprocess.check_output", ausente)
+    monkeypatch.delenv("NOVAMERCADO_GIT_COMMIT", raising=False)
+    assert proveniencia_git() == (None, None)

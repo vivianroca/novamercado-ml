@@ -12,6 +12,7 @@ from threadpoolctl import threadpool_limits
 from ml.baseline import costo_negocio
 from ml.evaluacion import evaluar_temporal, metricas
 from ml.features import CATEGORICAS, NOMBRES
+import pandas as pd
 
 PARAMETROS = dict(loss="squared_error", learning_rate=0.08, max_iter=200,
                   max_leaf_nodes=31, min_samples_leaf=30, l2_regularization=1.0,
@@ -23,6 +24,34 @@ def ajuste_cuantil(residuos, costos):
         raise ValueError("Residuos de calibración vacíos o inválidos")
     indice = max(0, min(len(residuos) - 1, ceil(len(residuos) * costos.cuantil) - 1))
     return float(sorted(residuos)[indice])
+
+
+def evaluar_modelo_congelado(modelo, x, ventas, costos, reporte_origen, reporte_candidato):
+    """Reevaluar el vigente en casos actuales sin fit ni recalibración."""
+    if reporte_origen["calibracion_fin"] >= reporte_candidato["inicio"]:
+        raise ValueError("El champion conoce fechas de la validación solicitada")
+    inicio, fin = reporte_candidato["inicio"], reporte_candidato["fin"]
+    mascara = np.array([inicio <= v.fecha.isoformat() <= fin for v in ventas])
+    salida = modelo.predict(pd.DataFrame(x[mascara], columns=NOMBRES))
+    seleccion = np.array(ventas, dtype=object)[mascara]
+    if len(salida) != len(seleccion):
+        raise ValueError("Champion devolvió cantidad incorrecta de predicciones")
+    filas = []
+    for v, (_, p) in zip(seleccion, salida.iterrows()):
+        pred, sugerido = float(p.venta_esperada), float(p.cantidad_sugerida)
+        if not np.isfinite([pred, sugerido]).all() or pred < 0 or sugerido < 0 or not sugerido.is_integer():
+            raise ValueError("Predicción del champion inválida")
+        filas.append({"real": v.ventas, "venta_esperada": pred,
+                      "costo": costo_negocio(v.ventas, int(sugerido), costos[v.familia_id]),
+                      "costo_media": costo_negocio(v.ventas, int(pred + 0.5), costos[v.familia_id]),
+                      "familia_id": v.familia_id})
+    grupos = defaultdict(list)
+    for f in filas:
+        grupos[f["familia_id"]].append(f)
+    return {**reporte_origen, "inicio": inicio, "fin": fin, "metricas": metricas(filas),
+            "por_familia": {f: metricas(valores) for f, valores in sorted(grupos.items())},
+            "sha256_insumos": reporte_candidato["sha256_insumos"],
+            "reevaluado_sin_entrenar": True}
 
 
 def evaluar_histgradient(x, ventas, costos, inicio, fin, dias_calibracion=28, parametros=None):
