@@ -1,4 +1,7 @@
-"""Aplicación HTTP con PostgreSQL del producto; predictor real aún pendiente."""
+"""Aplicación HTTP con PostgreSQL del producto y champion MLflow cargado en memoria."""
+
+from contextlib import asynccontextmanager
+import threading
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -9,7 +12,17 @@ from app.servicios.interfaces import ServicioNoDisponible
 
 
 def crear_app() -> FastAPI:
-    instancia = FastAPI(title="NovaMercado", docs_url=None, redoc_url=None, openapi_url=None)
+    @asynccontextmanager
+    async def lifespan(app):
+        try:
+            yield
+        finally:
+            if app.state.predictor is not None:
+                app.state.predictor.cerrar()
+
+    instancia = FastAPI(title="NovaMercado", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+    instancia.state.predictor_lock = threading.Lock()
+    instancia.state.predictor = None
     instancia.include_router(router)
 
     @instancia.exception_handler(SolicitudInvalida)

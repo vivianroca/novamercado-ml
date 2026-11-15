@@ -6,12 +6,29 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from app.db.conexion import conectar_producto
+from ml.baseline import Venta
 from app.servicios.interfaces import ServicioNoDisponible
 
 
 class RepositorioProducto:
     def __init__(self, conectar=conectar_producto):
         self.conectar = conectar
+
+    def leer_observaciones(self, tienda_id, desde, hasta, familias):
+        """Solo pasado solicitado; las correcciones vigentes prevalecen sobre CSV."""
+        try:
+            with self.conectar() as conexion:
+                filas = conexion.execute(
+                    """SELECT fecha, tienda_id, familia_id, ventas
+                       FROM novamercado.observaciones
+                       WHERE tienda_id=%s AND fecha >= %s AND fecha < %s
+                         AND familia_id=ANY(%s)
+                       ORDER BY fecha, familia_id""",
+                    (tienda_id, desde, hasta, list(familias)),
+                ).fetchall()
+            return [Venta(*fila) for fila in filas]
+        except psycopg.Error as error:
+            raise ServicioNoDisponible("No se pudieron consultar las observaciones del producto") from error
 
     @staticmethod
     def _solicitud(conexion, tipo, original, solicitud, calidad):

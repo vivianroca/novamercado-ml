@@ -216,7 +216,7 @@ def test_cableado_real_prediccion_sin_modelo_y_rechazo_sin_escrituras(api_real):
         {"familia_id": "lacteos", "en_promocion": 0}]}
     respuesta = cliente.post("/v1/prediccion", json=solicitud)
     assert respuesta.status_code == 503
-    assert respuesta.json() == {"detail": "Modelo de predicción no configurado"}
+    assert respuesta.json() == {"detail": "No hay modelo champion cargado"}
     respuesta = cliente.post("/v1/observaciones", json=entrada(-4))
     assert respuesta.status_code == 422
     assert respuesta.json()["detail"]
@@ -233,3 +233,46 @@ def test_cableado_real_error_db_no_confirma_guardado(api_real, monkeypatch):
     assert set(respuesta.json()) == {"detail"}
     with conectar() as conexion:
         assert conexion.execute("SELECT count(*) FROM novamercado.solicitudes").fetchone() == (0,)
+
+
+def test_prediccion_champion_real_persistida_y_continua_sin_mlflow(api_real, modelo_serving, monkeypatch):
+    from app.schemas.solicitudes import SolicitudPrediccion
+    from datetime import date
+
+    cliente, conectar = api_real
+    monkeypatch.setenv("DATA_DIR", str(modelo_serving.data_dir))
+    for fecha, ventas in [("2026-01-08", 123), ("2026-01-09", 99999)]:
+        r = cliente.post("/v1/observaciones", json={"tienda_id": 5, "fecha": fecha,
+            "ventas": [{"familia_id": "pan", "ventas": ventas}]})
+        assert r.status_code == 200
+    entrada = {"tienda_id": "T05", "fecha": "09/01/2026",
+               "familias": [{"familia_id": "PAN", "en_promocion": "2"}]}
+    primera = cliente.post("/v1/prediccion", json=entrada)
+    assert primera.status_code == 200, primera.text
+    contenido = primera.json()
+    assert contenido["version_modelo"] == modelo_serving.version
+    assert contenido["calidad"]["estado"] == "corregido"
+    predictor = cliente.app.state.predictor
+    snapshot = predictor.cache.obtener()
+    solicitud = SolicitudPrediccion(tienda_id=5, fecha=date(2026, 1, 9), familias=[{"familia_id": "pan", "en_promocion": 2}])
+    x = predictor.variables.matriz(solicitud, snapshot)
+    assert x.loc[0, "lag_1"] == 123  # DB reemplaza histórico; observación de D se excluye.
+    esperadas = modelo_serving.modelo.predict(None, x)
+    assert contenido["predicciones"] == [{"familia_id": "pan",
+        "venta_esperada": float(esperadas.iloc[0].venta_esperada),
+        "cantidad_sugerida": int(esperadas.iloc[0].cantidad_sugerida)}]
+
+    def no_disponible():
+        raise ConnectionError("MLflow temporalmente no disponible")
+    monkeypatch.setattr(predictor.cache.fuente, "consultar", no_disponible)
+    predictor.cache.refrescar()
+    assert predictor.cache.ultimo_error == "ConnectionError"
+    segunda = cliente.post("/v1/prediccion", json=entrada)
+    assert segunda.status_code == 200 and segunda.json() == contenido
+    with conectar() as conexion:
+        filas = conexion.execute("SELECT version_modelo, venta_esperada, cantidad_sugerida FROM novamercado.predicciones").fetchall()
+        assert len(filas) == 2
+        assert all(f == (modelo_serving.version, contenido["predicciones"][0]["venta_esperada"],
+                         contenido["predicciones"][0]["cantidad_sugerida"]) for f in filas)
+    # Un segundo request reutiliza el mismo servicio y snapshot cargado.
+    assert cliente.app.state.predictor is predictor

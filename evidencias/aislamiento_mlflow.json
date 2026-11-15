@@ -1,0 +1,31 @@
+{
+  "runs_antes": 14,
+  "runs_despues": 14,
+  "inventario_principal_sin_cambios": true,
+  "runs_creados_en_principal_por_pytest": 0,
+  "runs_eliminados": 0,
+  "modelos_eliminados": 0,
+  "modelos": {
+    "novamercado-histgradientboosting": {
+      "aliases": {
+        "champion": "1"
+      },
+      "versiones": {
+        "2": {
+          "run_id": "939ed42d45744c1490ce08e7772d3336",
+          "source": "models:/m-c4757ff61eca432b84fc79c66c928025",
+          "status": "READY"
+        },
+        "1": {
+          "run_id": "644650a470024476a8926b64837c5984",
+          "source": "models:/m-f54736415e1c4b908414fcaf9435d228",
+          "status": "READY"
+        }
+      }
+    }
+  },
+  "pruebas": 180,
+  "fallos": 0,
+  "omitidas": 0,
+  "tracking_pruebas": "servidor local propio, SQLite y artefactos temporales; clientes externos bloqueados"
+}

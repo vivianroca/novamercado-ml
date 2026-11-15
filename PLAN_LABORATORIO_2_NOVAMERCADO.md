@@ -56,7 +56,7 @@ El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. 
 
 | ID | Requisito [PDF] | Página | Prueba o evidencia exigida para cerrar | Estado |
 |---|---|---|---|---|
-| R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | 1, 6 | POST real con varios ítems: campos y valores correctos | Pendiente |
+| R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | 1, 6 | Serving champion real versión 1, dos familias y persistencia; `evidencias/prediccion_champion.json` y pruebas aisladas | Verificado |
 | R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | 1–2 | Pruebas parametrizadas con ejemplos y nuevos casos | Pendiente |
 | R03 | Las respuestas explican correcciones/advertencias | 2, 6 | Verificar `calidad.estado` y observaciones | Pendiente |
 | R04 | Contrato exacto de API con Pydantic y limpieza fuera de endpoints | 2, 6–7 | Pruebas de esquema, estructura de código y 422 | Pendiente |
@@ -64,11 +64,11 @@ El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. 
 | R06 | PostgreSQL de producto distinto al de Airflow, en Docker | 3 | Comprobar separación y conexiones con Compose | Pendiente |
 | R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | 1, 3 | Consultar DB tras solicitudes y reinicio | Pendiente |
 | R08 | Observaciones idempotentes | 3, 7 | `tests/test_persistencia.py`: HTTP 200, reenvío 0, nuevos + modificados, concurrencia sin duplicados; evidencia en `evidencias/fase_3_1_postgresql.md` | Verificado |
-| R09 | Baseline y al menos un modelo ML que mejore al baseline | 3 | Evaluación temporal documentada y reproducible | Pendiente |
+| R09 | Baseline y al menos un modelo ML que mejore al baseline | 3 | `evidencias/comparacion_histgradient.json`: mismo periodo/casos, HGB mejora MAE/RMSE/WAPE/costo; `tests/test_histgradient.py` | Verificado offline |
 | R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | 2–3 | Comparativa calculada con fórmula del PDF | Pendiente |
 | R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Casos con distintas relaciones de costos y explicación | Pendiente |
 | R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | 3 | Capturas/consultas de runs, artefactos, versiones y alias | Pendiente |
-| R13 | Criterio automatizado y explícito de promoción | 3 | Pruebas con mejora, empate, retroceso y error | Pendiente |
+| R13 | Criterio automatizado y explícito de promoción | 3 | `ml/promocion.py`, `tests/test_promocion.py`, `tests/test_promocion_mlflow.py`: mejora, empate, retroceso y error; decisiones auditadas | Verificado |
 | R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | DAG ejecutado, consulta a DB y evidencia de ejecución | Pendiente |
 | R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | POST 202/503, GET estados y GET 404 | Pendiente |
 | R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Comparar versiones antes/después con tiempo registrado | Pendiente |
@@ -452,3 +452,129 @@ DB 503 tampoco confirman registros. Suite completa contra PostgreSQL temporal:
 **103 passed, 0 skipped**, una advertencia de Starlette/AnyIO. Contenedor detenido,
 sin modificar volúmenes existentes. Reinicio operativo del producto aún pendiente;
 sin ML ni reentrenamiento.
+
+### Fase 4.1 — Baseline temporal y costo
+
+- Implementados `ml/baseline.py`, `ml/datos.py` y `ml/evaluacion.py`: media semanal
+  por tienda/familia, ventana fija de 56 días y sugerido por cuantil empírico de costos.
+- Validación diaria progresiva: entrenamiento inicial anterior a 2026-01-04;
+  validación hasta 2026-02-28. Solo se incorporan observaciones tras pronosticar su día.
+- 6 720 casos: MAE 53.6474, RMSE 95.5896, WAPE 26.1719%; costo 239 897.90 frente
+  a 292 502.10 usando la media redondeada. La mejora de costo no es uniforme por familia.
+- Evidencia reproducible con métricas por familia y hashes: `evidencias/baseline_4_1.json`.
+- Pruebas: 22 nuevas; suite completa **125 passed, 0 skipped**, una advertencia
+  externa de Starlette/AnyIO. Incluye exclusión de día actual/futuro, aislamiento de
+  series, selección de cuantil, métricas con ceros y secuencia temporal.
+- R09 parcial: baseline disponible; aún falta un modelo ML que lo mejore.
+  R10/R11 avanzan con evaluación del baseline, sin declarar completa la Fase 4.
+- Sin MLflow, modelos avanzados ni integración del baseline al endpoint.
+
+### Tracking MLflow del baseline existente
+
+Implementado `ml/tracking.py`: registro sin reentrenar, experimento `NovaMercado`,
+cliente 2.22.0 y servicio Compose `mlflow`. Run verificado `a65d9a88bf3d4d1383ac665ff66355a0`
+en FINISHED: 9 parámetros, 91 métricas, cuatro datasets con digest, reporte,
+configuración, código y manifest de linaje. Reporte y snapshots descargados y
+verificados contra originales/hashes. Evidencia: `evidencias/mlflow_baseline.json`.
+R12 avanza en tracking/linaje; modelo ejecutable, Registry, alias y promoción
+siguen pendientes. No se entrenaron modelos ni se conectó predictor a la API.
+
+Pruebas: **131 passed, 0 skipped**, dos advertencias externas de obsolescencia;
+incluye seis nuevas de tracking con cliente sustituido y regresión PostgreSQL real
+temporal. Compose validado sin construir imágenes. MLflow queda activo en 5001
+con metadata/artefactos persistentes; el PostgreSQL temporal fue detenido.
+
+### Actualización MLflow a 3.17.2
+
+- Imagen Compose y `mlflow-skinny` fijados a 3.17.2. Dependencias instaladas y
+  `pip check` sin conflictos; Compose válido.
+- Respaldo previo consistente de SQLite y artefactos en `.backups/`, ignorado por
+  Git/Docker; inventario de tres runs. Se ejecutó upgrade de DB con 3.17.2 y se
+  reutilizaron los mismos volúmenes de metadata y artefactos.
+- Verificados todos los runs previos, métricas, parámetros, tags, inputs y hashes
+  de artefactos. Baseline original sigue FINISHED y visible en el mismo experimento.
+- Registry/aliases probados con metadata temporal aislada, sin modelo de producto,
+  entrenamiento ni promoción. También se verificó registro del mismo reporte con
+  cliente 3.17.2, UI y host interno `mlflow:5000`.
+- Pruebas: **131 de regresión + 4 de compatibilidad aprobadas**, sin omisiones ni
+  fallos. PostgreSQL temporal detenido; MLflow 3.17.2 permanece healthy en 5001.
+- Evidencia: `evidencias/mlflow_upgrade_3_17_2.json`. Sin funcionalidades nuevas.
+
+### Fase 4 — HistGradientBoosting
+
+- Features causales de calendario, tienda/familia, promociones, feriados nacionales
+  y locales, rezagos y agregados. 36 variables; NaN para pasado no observado.
+- Ajuste único hasta 2025-12-06, calibración de sugeridos por costos hasta
+  2026-01-03, validación idéntica al baseline en 2026-01-04–2026-02-28 (6 720 casos).
+  Sin early stopping aleatorio, búsqueda sobre validación ni reentrenamiento.
+- HGB: MAE 38.5310, RMSE 69.6758, WAPE 18.7973%, costo 197 537.70. Baseline:
+  MAE 53.6474, RMSE 95.5896, WAPE 26.1719%, costo 239 897.90.
+- Run MLflow `644650a470024476a8926b64837c5984`, experimento NovaMercado, FINISHED.
+  Modelo pyfunc ejecutable `novamercado-histgradientboosting` versión 1, READY;
+  cinco datasets con digest, parámetros, comparación, métricas, código y linaje.
+  Descarga/carga verificada; sin alias ni promoción.
+- Pruebas: **147 passed, 0 skipped**, tres advertencias de dependencias/entorno.
+  Incluye 12 nuevas de causalidad, ciudades, calibración temporal, costos,
+  serialización y coincidencia de salida; integración PostgreSQL y MLflow también pasó.
+- Evidencia: `evidencias/comparacion_histgradient.json`; decisiones y comando en
+  DECISIONES/README. API, promoción y reentrenamiento siguen fuera de alcance.
+
+### Política de promoción champion
+
+- Implementada en `ml/promocion.py` e invocada automáticamente tras finalizar el
+  entrenamiento. Ahorro mínimo 1%, sin regresión técnica >5% ni costo familiar >10%.
+  Validación de READY/FINISHED, temporalidad, métricas, casos e insumos comparables.
+- Cada evaluación crea un run propio en NovaMercado con los archivos exactos
+  `comparacion_modelos.csv` y `decision_champion.md`, incluyendo versión vigente
+  al terminar, criterio y motivo. Se suben antes de cambiar alias y se confirma
+  resultado después. Fallos intentan reversión; no se oculta estado remoto incierto.
+- Primera evaluación real: versión 1 promovida frente al baseline (197 537.70 vs
+  239 897.90). Run de decisión `3dd2551d556149c9b72ecfcc8786ad57`.
+- Ejecución completa posterior: versión 2 empata costo y métricas; no promovida,
+  se conserva champion versión 1. Run de decisión `6b2684c69fa845b789e4ec422713c2fd`.
+  Ambos pares de artefactos se descargaron y verificaron.
+- Evidencias locales: `evidencias/decision_champion.json` y
+  `evidencias/evaluacion_champion_repetida.json`.
+- Suite: **175 passed, 0 skipped**, tres advertencias externas. Incluye 26 tests
+  unitarios de política y dos de auditoría contra MLflow, más regresión completa.
+- Sin Airflow ni serving/actualización del modelo en la API. Un único escritor
+  de promociones; si cambia periodo/insumos, reevaluar champion antes de comparar.
+
+### Corrección: aislamiento del tracking en pytest
+
+- Identificada la causa: pruebas de integración apuntaban a `:5001` y ejecutaban
+  registro de baseline/decisiones sobre NovaMercado real en cada repetición.
+- `tests/conftest.py` configura tracking y Registry temporales; integración HTTP
+  usa servidor propio por sesión con SQLite, artefactos y datos sintéticos. No
+  requiere IDs/modelos/insumos del producto ni inventario de su migración.
+- Guardas bloquean clientes externos y sustituyen variables heredadas, incluso
+  si el shell configura el tracking/Registry principal. No se cambia lógica de
+  registro/auditoría de ejecuciones reales ni se borran runs/modelos existentes.
+- **180 passed, 0 skipped**, tres advertencias externas. Suite ejecutada con las
+  variables del shell apuntando deliberadamente al servicio principal para probar
+  la barrera. Pruebas de contrato no requieren servidor MLflow activo.
+- Verificación de inventario principal antes/después: **14 runs → 14 runs**,
+  mismos IDs, estados, parámetros, métricas, tags, modelos, versiones y aliases.
+  Champion permanece versión 1; versiones 1 y 2 conservadas. Cero escrituras de
+  pytest en el tracking principal. Evidencia: `evidencias/aislamiento_mlflow.json`.
+
+### Serving del champion
+
+- POST `/v1/prediccion` usa el pyfunc champion del Registry. Caché en memoria por
+  aplicación con versión del mismo snapshot; refresco cada 30s sin bloquear las
+  predicciones ya cargadas. Errores de red/carga conservan el modelo anterior.
+- Features de histórico local y observaciones PostgreSQL en `[D-56, D)`, DB
+  prevalece sobre CSV; promoción de D desde solicitud. No se usan ventas de D ni
+  futuras. Se rechazan fechas <= corte de entrenamiento/calibración del modelo.
+- Versiones/predicciones quedan persistidas antes de HTTP 200. Sin modelo inicial
+  o DB disponible se responde 503; sin resultados inventados.
+- **192 passed, 0 skipped**, siete advertencias de dependencias/entorno. Doce
+  nuevas pruebas incluyen SQL + pyfunc reales en tracking aislado, coherencia de
+  versión, correcciones, errores, refresco concurrente y continuidad con fallo MLflow.
+- Comprobación de lectura del champion real versión 1: HTTP 200 para dos familias,
+  cuatro predicciones persistidas en PostgreSQL temporal tras dos solicitudes,
+  segunda tras simular fallo de transporte MLflow; mismo resultado y versión.
+  Runs principales 14 → 14 y alias sin cambios. Evidencia:
+  `evidencias/prediccion_champion.json`.
+- R22 avanza con caída simulada de transporte; interrupción real del contenedor
+  y tiempos de salud quedan pendientes para operación. Sin Airflow ni reentrenamiento.
