@@ -1,0 +1,157 @@
+name: novamercado
+
+x-airflow: &airflow
+  image: apache/airflow:2.10.5-python3.12
+  user: "${AIRFLOW_UID:-50000}:0"
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://${AIRFLOW_DB_USER:?}:${AIRFLOW_DB_PASSWORD:?}@airflow-db:5432/${AIRFLOW_DB:?}"
+    AIRFLOW__CORE__FERNET_KEY: "${AIRFLOW_FERNET_KEY:?}"
+    AIRFLOW__WEBSERVER__SECRET_KEY: "${AIRFLOW_SECRET_KEY:?}"
+    AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    PRODUCT_DB_HOST: product-db
+    PRODUCT_DB_NAME: "${PRODUCT_DB:?}"
+    PRODUCT_DB_USER: "${PRODUCT_DB_USER:?}"
+    PRODUCT_DB_PASSWORD: "${PRODUCT_DB_PASSWORD:?}"
+    DATA_DIR: /data
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags:ro
+    - airflow-logs:/opt/airflow/logs
+    - type: bind
+      source: ${DATA_DIR:-./data}
+      target: /data
+      read_only: true
+      bind:
+        create_host_path: false
+
+services:
+  product-db:
+    image: postgres:16.8-bookworm
+    environment:
+      POSTGRES_DB: "${PRODUCT_DB:?}"
+      POSTGRES_USER: "${PRODUCT_DB_USER:?}"
+      POSTGRES_PASSWORD: "${PRODUCT_DB_PASSWORD:?}"
+    volumes:
+      - product-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  airflow-db:
+    image: postgres:16.8-bookworm
+    environment:
+      POSTGRES_DB: "${AIRFLOW_DB:?}"
+      POSTGRES_USER: "${AIRFLOW_DB_USER:?}"
+      POSTGRES_PASSWORD: "${AIRFLOW_DB_PASSWORD:?}"
+    volumes:
+      - airflow-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.22.0
+    command:
+      - mlflow
+      - server
+      - --host=0.0.0.0
+      - --port=5000
+      - --backend-store-uri=sqlite:////mlflow/metadata/mlflow.db
+      - --serve-artifacts
+      - --artifacts-destination=/mlflow/artifacts
+    ports:
+      - "127.0.0.1:${MLFLOW_PORT:-5001}:5000"
+    volumes:
+      - mlflow-metadata:/mlflow/metadata
+      - mlflow-artifacts:/mlflow/artifacts
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  airflow-init:
+    <<: *airflow
+    environment:
+      <<: *airflow-env
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: "${AIRFLOW_ADMIN_USER:?}"
+      _AIRFLOW_WWW_USER_PASSWORD: "${AIRFLOW_ADMIN_PASSWORD:?}"
+    command: version
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow
+    command: webserver
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-8080}:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  airflow-scheduler:
+    <<: *airflow
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD-SHELL, 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PRODUCT_DB_HOST: product-db
+      PRODUCT_DB_NAME: "${PRODUCT_DB:?}"
+      PRODUCT_DB_USER: "${PRODUCT_DB_USER:?}"
+      PRODUCT_DB_PASSWORD: "${PRODUCT_DB_PASSWORD:?}"
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AIRFLOW_BASE_URL: http://airflow-webserver:8080
+      AIRFLOW_USER: "${AIRFLOW_ADMIN_USER:?}"
+      AIRFLOW_PASSWORD: "${AIRFLOW_ADMIN_PASSWORD:?}"
+      DATA_DIR: /data
+      MODEL_CACHE_DIR: /models
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    volumes:
+      - model-cache:/models
+      - type: bind
+        source: ${DATA_DIR:-./data}
+        target: /data
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      product-db:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+      airflow-webserver:
+        condition: service_healthy
+
+volumes:
+  product-db:
+  airflow-db:
+  mlflow-metadata:
+  mlflow-artifacts:
+  airflow-logs:
+  model-cache:

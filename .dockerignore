@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+**/__pycache__
+.pytest_cache
+data
+datos_lab2
+mlruns
+mlartifacts
+models
+logs
+evidencias
+*.db
+*.sqlite*
