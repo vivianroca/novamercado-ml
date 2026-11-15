@@ -13,7 +13,7 @@ La comparación y sus límites están documentados en [`evidencias/comparacion_h
 
 ## Arranque desde cero
 
-1. Instala Docker Compose y coloca en `data/` los insumos entregados por el curso: `tiendas.csv`, `familias.csv`, `historico_ventas.csv`, `feriados.csv`, `costos.csv`, `catalogo_errores.md` y `ejemplos/`. No se incluyen en Git ni en las imágenes. Se montan en solo lectura; para otra ubicación configura `DATA_DIR`.
+1. Instala Docker Compose y coloca en `data/` los archivos de entrada: `tiendas.csv`, `familias.csv`, `historico_ventas.csv`, `feriados.csv`, `costos.csv`, `catalogo_errores.md` y `ejemplos/`. No se incluyen en Git ni en las imágenes. Se montan en solo lectura; para otra ubicación configura `DATA_DIR`.
 2. Prepara el entorno:
 
    ```sh
@@ -29,7 +29,7 @@ La comparación y sus límites están documentados en [`evidencias/comparacion_h
    docker compose ps
    ```
 
-   `up -d` inicia los servicios en segundo plano; no significa que la API esté lista. Espera hasta que `/health` devuelva `estado=ok` (hasta 10 minutos, límite del PDF). Este bucle consulta cada 5 segundos y trata una respuesta degradada o una conexión aún no disponible como espera:
+   `up -d` inicia los servicios en segundo plano; no significa que la API esté lista. Espera hasta que `/health` devuelva `estado=ok` (límite operativo de 10 minutos). Este bucle consulta cada 5 segundos y trata una respuesta degradada o una conexión aún no disponible como espera:
 
    ```sh
    intento=0
@@ -99,7 +99,7 @@ FastAPI carga el champion al arrancar y revisa el alias cada 30 segundos como m�
 
 ## Modelo, promoción y reentrenamiento
 
-El experimento es `NovaMercado`; el modelo registrado es `novamercado-histgradientboosting`; el alias servido es `champion`. HistGradientBoosting usa variables causales de calendario, tienda, familia, promociones, feriados y rezagos. El costo de inventario sigue la fórmula del PDF: `costo_faltante * max(real - sugerido, 0) + costo_sobrante * max(sugerido - real, 0)`.
+El experimento es `NovaMercado`; el modelo registrado es `novamercado-histgradientboosting`; el alias servido es `champion`. HistGradientBoosting usa variables causales de calendario, tienda, familia, promociones, feriados y rezagos. El costo de inventario sigue esta fórmula: `costo_faltante * max(real - sugerido, 0) + costo_sobrante * max(sugerido - real, 0)`.
 
 La promoción requiere reducir el costo total al menos 1%, sin empeorar MAE/RMSE/WAPE más de 5% ni el costo de una familia más de 10%. Los candidatos se comparan sobre las mismas fechas y casos. Empates, fallos y candidatos rechazados conservan el champion. `DECISIONES.md` describe la normalización, variables, sugeridos, política y limitaciones.
 
@@ -167,4 +167,4 @@ docker compose --env-file .env config --quiet
 
 ## Verificación y evidencias
 
-La matriz y el detalle de aceptación están en [`PLAN_LABORATORIO_2_NOVAMERCADO.md`](PLAN_LABORATORIO_2_NOVAMERCADO.md). El arranque limpio, bootstrap, salud, modelo y persistencia tras reinicio se verificaron en un clon aislado y se registraron en [`evidencias/r26_clone_origin_dev.json`](evidencias/r26_clone_origin_dev.json). Las pruebas aisladas documentan los escenarios ejecutados; no garantizan el rendimiento en hardware distinto ni ante cambios futuros en GES.
+La especificación, los criterios de aceptación y su trazabilidad están en [`REQUISITOS.md`](REQUISITOS.md). El arranque limpio, bootstrap, salud, modelo y persistencia tras reinicio se verificaron en un clon aislado y se registraron en [`evidencias/r26_clone_origin_dev.json`](evidencias/r26_clone_origin_dev.json). Las pruebas aisladas documentan los escenarios ejecutados; el rendimiento puede variar según el hardware y la evolución de la demanda.

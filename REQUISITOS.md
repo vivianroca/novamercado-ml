@@ -1,13 +1,10 @@
-# Plan de implementación y matriz de cumplimiento — Laboratorio 2
+# NovaMercado — Especificación de Requisitos y Criterios de Aceptación
 
-**Proyecto:** Servicio de ML en Producción — Pronóstico Diario de Ventas para NovaMercado  
-**Curso:** Product Development, Maestría en Data Science, cuarto ciclo (octubre de 2026)  
-**Documento fuente:** `Laboratorio_2_PD_26_c(1).pdf` (7 páginas)  
-**Estado actual:** implementación y aceptación operativa en progreso; revisar la matriz vigente más abajo. Los archivos suministrados están en `data/` y se excluyen de Git. La revisión documental Fase 8.3 no vuelve a ejecutar pruebas ni contenedores.
-**Herramienta de desarrollo:** Codex.  
-**Propósito de este archivo:** respaldar las decisiones y requisitos antes de implementar, para poder reanudar el proyecto en futuras sesiones y auditar el resultado.  
+**Producto:** servicio de pronóstico diario de ventas por tienda y familia.
 
-> **Regla de trazabilidad:** cada obligación se vincula a una página del PDF y deberá tener una prueba o evidencia antes de declarar terminada la implementación. La descripción de un archivo o mecanismo de implementación en este plan **no sustituye** la prueba de que funciona.
+**Estado:** requisitos, criterios de aceptación y evidencias se mantienen en la matriz vigente. Los archivos de entrada residen en `data/` y se excluyen de Git. Este documento también conserva la bitácora histórica de validaciones.
+
+> **Trazabilidad:** cada requisito se vincula a una prueba o evidencia antes de declararse verificado. La descripción de un archivo o mecanismo **no sustituye** la prueba de que funciona.
 
 ## 1. Alcance y criterios de diseño
 
@@ -23,13 +20,13 @@ Construir un producto ejecutable con FastAPI, PostgreSQL, MLflow, Airflow y Dock
 
 ### Clasificación de requisitos
 
-- **[PDF] Obligatorio:** indicado expresamente por el laboratorio.
-- **[IMPLEMENTACIÓN] Necesario según nuestra arquitectura:** elección técnica para cumplir lo anterior, no un nombre de archivo exigido por el docente.
+- **[REQUISITO] Obligatorio:** forma parte del contrato de producto.
+- **[IMPLEMENTACIÓN] Necesario según la arquitectura:** elección técnica para cumplir el requisito, no una restricción de nombre de archivo.
 - **[OPCIONAL] Mejora:** solo si aporta valor y no compromete plazos.
 
-## 2. Insumos del GES
+## 2. Datos de entrada
 
-El PDF (p. 2) enumera estos archivos. Los insumos recibidos y contrastados están en `data/`; su contenido queda excluido de Git. En la entrega, el docente debe colocar allí los archivos publicados:
+El contrato de datos requiere estos archivos. Los insumos operativos están en `data/`; su contenido queda excluido de Git. El entorno de despliegue debe disponer allí de los archivos de entrada:
 
 | Insumo | Uso previsto | Estado |
 |---|---|---|
@@ -41,54 +38,54 @@ El PDF (p. 2) enumera estos archivos. Los insumos recibidos y contrastados está
 | `catalogo_errores.md` | Ejemplos y tipos de problemas observados; no exhaustivo | Disponible localmente; ignorado por Git |
 | `ejemplos/` | Solicitudes válidas y defectuosas | Disponible localmente; ignorado por Git |
 
-**Reglas de integración de insumos [PDF, p. 2]:**
+**Reglas de integración de los datos:**
 - En `feriados.csv`, `ambito` vale `nacional` o el nombre de ciudad que coincide con `ciudad` en `tiendas.csv`.
 - El sistema recibe observaciones de ventas del día anterior **antes** del pronóstico del día siguiente.
 - Las observaciones **no** contienen promociones; `en_promocion` del día de pronóstico llega en la solicitud.
 - No usar el reloj real para invalidar fechas: el servicio opera con **fechas simuladas**; la evaluación es posterior al histórico y está cubierta por el calendario de feriados.
-- El docente colocará los insumos en la carpeta señalada en el README al evaluar. El primer arranque debe funcionar a partir de esos archivos.
+- El operador de despliegue coloca los insumos en la ruta indicada en README. El primer arranque debe funcionar a partir de esos archivos.
 
-La inspección de cabeceras, tipos, rangos, nulos, duplicados, claves y ejemplos se documentó antes de implementar reglas. Repetirla si el docente publica una versión distinta.
+La inspección de cabeceras, tipos, rangos, nulos, duplicados, claves y ejemplos se documentó antes de implementar reglas. Repetirla cuando cambien los archivos fuente.
 
 ## 3. Matriz de requisitos y pruebas de aceptación
 
 **Estado actualizado al 2026-11-15.** `Verificado` requiere prueba/evidencia indicada. `Parcial` significa que existe implementación o un escenario limitado, pero falta la aceptación completa. `Pendiente` no se afirma como cumplido. La revisión documental Fase 8.2 no vuelve a ejecutar verificaciones.
 
-| ID | Requisito [PDF] | Página | Prueba o evidencia exigida para cerrar | Estado |
-|---|---|---|---|---|
-| R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | 1, 6 | Serving champion real versión 1, dos familias y persistencia; `evidencias/prediccion_champion.json` y pruebas aisladas | Verificado |
-| R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | 1–2 | `tests/test_normalizacion.py`: ejemplos GES y casos adicionales | Verificado con pytest aislado |
-| R03 | Las respuestas explican correcciones/advertencias | 2, 6 | Pruebas de normalización y HTTP verifican `calidad.estado` y detalle | Verificado |
-| R04 | Contrato exacto de API con Pydantic y limpieza fuera de endpoints | 2, 6–7 | Esquemas Pydantic, calidad separada y pruebas HTTP 422 | Verificado por pruebas/código |
-| R05 | pytest del contrato independientes de un MLflow activo | 2 | 177 pruebas focalizadas con URI MLflow heredado inalcanzable y stores temporales | Verificado |
-| R06 | PostgreSQL de producto distinto al de Airflow, en Docker | 3 | Compose aislado: servicios product-db y airflow-db independientes; integraciones DB | Verificado en Compose aislado |
-| R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | 1, 3 | SQL tras reinicio de PostgreSQL Compose aislado; `evidencias/auditoria_p1.json` | Verificado en Compose aislado |
-| R08 | Observaciones idempotentes | 3, 7 | `tests/test_persistencia.py`: HTTP 200, reenvío 0, nuevos + modificados, concurrencia sin duplicados; evidencia en `evidencias/fase_3_1_postgresql.md` | Verificado |
-| R09 | Baseline y al menos un modelo ML que mejore al baseline | 3 | `evidencias/comparacion_histgradient.json`: mismo periodo/casos, HGB mejora MAE/RMSE/WAPE/costo; `tests/test_histgradient.py` | Verificado offline |
-| R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | 2–3 | MAE/RMSE/WAPE/costo mismo periodo/casos, `comparacion_histgradient.json` | Verificado offline |
-| R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Tests de costos asimétricos/cuantiles y evaluación por familia | Verificado por pruebas/evaluación |
-| R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | 3 | Consulta Registry/run/artifacts solo lectura, `evidencias/auditoria_p1.json` | Verificado |
-| R13 | Criterio automatizado y explícito de promoción | 3 | `ml/promocion.py`, `tests/test_promocion.py`, `tests/test_promocion_mlflow.py`: mejora, empate, retroceso y error; decisiones auditadas | Verificado |
-| R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | POST/GET y DAG real con PostgreSQL/MLflow aislados; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
-| R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | Contrato simulado y POST 202/GET terminal reales en Compose aislado | Verificado |
-| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Promoción real 1→2, predicción con versión 2 en 13,24 s desde fin DAG, mismo contenedor | Verificado en Compose aislado |
-| R17 | Fallo o candidato descartado no afecta modelo vigente | 3 | Pruebas de fallos/promoción y Compose aislado conserva versión 1 tras descarte | Verificado |
-| R18 | Todo se levanta con `docker compose up` y servicio llamado `mlflow` | 3 | Compose aislado: stack completo, API health ok; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
-| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | 3 | Registry vacío y bootstrap real en Compose aislado; evidencias/fase7_integral.json | Verificado |
-| R20 | Arranque posterior: conservar estado, no repetir bootstrap | 3 | Reinicio real API/DB/MLflow; 14 runs y champion 1; checkpoint y concurrencia probados | Verificado con champion existente |
-| R21 | Versiones fijas de imágenes; ni credenciales ni datos en imagen/repositorio; `.env.example` | 3 | Revisión estática Compose/Dockerfiles, ignore y archivos versionados | Verificado por revisión estática |
-| R22 | API sigue prediciendo con modelo cargado si MLflow cae | 3 | stop MLflow aislado, 15 predicciones idénticas versión 2 y refresco fallido observado | Verificado en Compose aislado |
-| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | 3 | stop/start real MLflow: degradado 1,38 s, ok 29,03 s; evidencia Fase 7 resiliencia | Verificado en Compose aislado |
-| R24 | Salud `ok` ≤10 min del arranque (sin contar build) | 4 | Registry vacío, volúmenes nuevos, health ok en 65,16 s; evidencia Fase 7 | Verificado en Compose aislado |
-| R25 | Reentrenamiento finaliza ≤10 min | 4 | POST/GET real con Airflow 3.3.2: 28,71 s, exitoso sin promoción | Verificado en Compose aislado |
-| R26 | README desde cero y ubicación de insumos | 4 | Ejecutar literalmente las instrucciones en entorno limpio | Pendiente |
-| R27 | Archivo de contexto para agente (`AGENTS.md`, `CLAUDE.md` o similar) | 4 | `AGENTS.md` actualizado en Fase 8.2 | Verificado documentalmente |
-| R28 | `DECISIONES.md` documenta políticas, variables, sugerido, promoción, alternativas | 4 | Secciones de datos/calidad, variables y alternativas de `DECISIONES.md`; revisión documental Fase 8.3 | Verificado documentalmente |
-| R29 | Repo GitHub accesible y tag exacto `entrega-lab2` anterior al límite | 4–5 | Verificar remoto, `git show entrega-lab2` y fecha | Pendiente |
-| R30 | Evidencias MLflow, DAG y respuestas válidas/defectuosas | 5 | MLflow/DAG en evidencias de Fases 4–7; ejemplos 200/422 con request/response y procedencia en `evidencias/respuestas_api.json` | Verificado documentalmente; capturas HTTP contractuales usan dobles explícitos |
-| R31 | Evaluación simula errores inéditos, drift, caídas y reinicios | 4 | `evidencias/r31_operacion_extendida.json`: 140 días, 12 respuestas 422 no catalogadas, 4 reentrenamientos, reinicios, MLflow interrumpido/recuperado y principal intacto | Verificado en Compose aislado; datos sintéticos |
+| ID | Requisito | Prueba o evidencia de aceptación | Estado |
+|---|---|---|---|
+| R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | Serving champion real versión 1, dos familias y persistencia; `evidencias/prediccion_champion.json` y pruebas aisladas | Verificado |
+| R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | `tests/test_normalizacion.py`: ejemplos de entrada y casos adicionales | Verificado con pytest aislado |
+| R03 | Las respuestas explican correcciones/advertencias | Pruebas de normalización y HTTP verifican `calidad.estado` y detalle | Verificado |
+| R04 | Contrato exacto de API con Pydantic y limpieza fuera de endpoints | Esquemas Pydantic, calidad separada y pruebas HTTP 422 | Verificado por pruebas/código |
+| R05 | pytest del contrato independientes de un MLflow activo | 177 pruebas focalizadas con URI MLflow heredado inalcanzable y stores temporales | Verificado |
+| R06 | PostgreSQL de producto distinto al de Airflow, en Docker | Compose aislado: servicios product-db y airflow-db independientes; integraciones DB | Verificado en Compose aislado |
+| R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | SQL tras reinicio de PostgreSQL Compose aislado; `evidencias/auditoria_p1.json` | Verificado en Compose aislado |
+| R08 | Observaciones idempotentes | `tests/test_persistencia.py`: HTTP 200, reenvío 0, nuevos + modificados, concurrencia sin duplicados; evidencia en `evidencias/fase_3_1_postgresql.md` | Verificado |
+| R09 | Baseline y al menos un modelo ML que mejore al baseline | `evidencias/comparacion_histgradient.json`: mismo periodo/casos, HGB mejora MAE/RMSE/WAPE/costo; `tests/test_histgradient.py` | Verificado offline |
+| R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | MAE/RMSE/WAPE/costo mismo periodo/casos, `comparacion_histgradient.json` | Verificado offline |
+| R11 | Cantidad sugerida coherente con costo por familia | Tests de costos asimétricos/cuantiles y evaluación por familia | Verificado por pruebas/evaluación |
+| R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | Consulta Registry/run/artifacts solo lectura, `evidencias/auditoria_p1.json` | Verificado |
+| R13 | Criterio automatizado y explícito de promoción | `ml/promocion.py`, `tests/test_promocion.py`, `tests/test_promocion_mlflow.py`: mejora, empate, retroceso y error; decisiones auditadas | Verificado |
+| R14 | Airflow reentrena usando histórico y observaciones persistidas | POST/GET y DAG real con PostgreSQL/MLflow aislados; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
+| R15 | Reentrenamiento invocable por API y estado consultable | Contrato simulado y POST 202/GET terminal reales en Compose aislado | Verificado |
+| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | Promoción real 1→2, predicción con versión 2 en 13,24 s desde fin DAG, mismo contenedor | Verificado en Compose aislado |
+| R17 | Fallo o candidato descartado no afecta modelo vigente | Pruebas de fallos/promoción y Compose aislado conserva versión 1 tras descarte | Verificado |
+| R18 | Todo se levanta con `docker compose up` y servicio llamado `mlflow` | Compose aislado: stack completo, API health ok; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
+| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | Registry vacío y bootstrap real en Compose aislado; evidencias/fase7_integral.json | Verificado |
+| R20 | Arranque posterior: conservar estado, no repetir bootstrap | Reinicio real API/DB/MLflow; 14 runs y champion 1; checkpoint y concurrencia probados | Verificado con champion existente |
+| R21 | Versiones fijas de imágenes; ni credenciales ni datos en imagen/repositorio; `.env.example` | Revisión estática Compose/Dockerfiles, ignore y archivos versionados | Verificado por revisión estática |
+| R22 | API sigue prediciendo con modelo cargado si MLflow cae | stop MLflow aislado, 15 predicciones idénticas versión 2 y refresco fallido observado | Verificado en Compose aislado |
+| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | stop/start real MLflow: degradado 1,38 s, ok 29,03 s; evidencia Fase 7 resiliencia | Verificado en Compose aislado |
+| R24 | Salud `ok` ≤10 min del arranque (sin contar build) | Registry vacío, volúmenes nuevos, health ok en 65,16 s; evidencia Fase 7 | Verificado en Compose aislado |
+| R25 | Reentrenamiento finaliza ≤10 min | POST/GET real con Airflow 3.3.2: 28,71 s, exitoso sin promoción | Verificado en Compose aislado |
+| R26 | README desde cero y ubicación de insumos | Clon limpio `origin/dev` (`ae44fd7`), bootstrap/health/modelo/persistencia tras reinicio; `evidencias/r26_clone_origin_dev.json` | Verificado con adaptaciones de aislamiento documentadas |
+| R27 | Archivo de contexto para agente (`AGENTS.md`, `CLAUDE.md` o similar) | `AGENTS.md` actualizado en Fase 8.2 | Verificado documentalmente |
+| R28 | `DECISIONES.md` documenta políticas, variables, sugerido, promoción, alternativas | Secciones de datos/calidad, variables y alternativas de `DECISIONES.md`; revisión documental Fase 8.3 | Verificado documentalmente |
+| R29 | Repo GitHub accesible y tag exacto `entrega-lab2` anterior al límite | Verificar remoto, `git show entrega-lab2` y fecha; `git ls-remote` confirmó acceso público y destino en `main` | Verificado: tag apunta a `bbda0ccbcd005f49db05e1442f80d409189d2b03` |
+| R30 | Evidencias MLflow, DAG y respuestas válidas/defectuosas | MLflow/DAG en evidencias de Fases 4–7; ejemplos 200/422 con request/response y procedencia en `evidencias/respuestas_api.json` | Verificado documentalmente; capturas HTTP contractuales usan dobles explícitos |
+| R31 | Evaluación simula errores inéditos, drift, caídas y reinicios | `evidencias/r31_operacion_extendida.json`: 140 días, 12 respuestas 422 no catalogadas, 4 reentrenamientos, reinicios, MLflow interrumpido/recuperado y principal intacto | Verificado en Compose aislado; datos sintéticos |
 
-### 3.1 Contrato externo: implementar **exactamente** el anexo [PDF, pp. 6–7]
+### 3.1 Contrato externo de la API
 
 **Puerto**: `8000`. **Fechas**: `AAAA-MM-DD`. **Rechazos**: HTTP `422` con `detail` explicativo.
 
@@ -146,11 +143,11 @@ Respuesta 200 incluye `registros_guardados` y `calidad`; `registros_guardados` c
 - HTTP `200`, `estado: degradado` + `motivo` cuando responde pero falla una dependencia.
 - HTTP `503` cuando **no hay modelo cargado**.
 
-**Nota de pruebas:** pueden existir campos adicionales en respuestas, pero no se pueden omitir ni renombrar los del anexo.
+**Nota de pruebas:** pueden existir campos adicionales en respuestas, pero no se pueden omitir ni renombrar los campos del contrato.
 
 ### 3.2 Fórmula y restricciones temporales
 
-[PDF, pp. 2–3] Costo por tienda, familia y día:
+Costo por tienda, familia y día:
 
 ```text
 costo = c_faltante * max(real - sugerido, 0)
@@ -171,19 +168,19 @@ Esta sección conserva las hipótesis de planificación previas a inspeccionar l
 |---|---|---|---|
 | Orquestación local | `compose.yaml` con API, DB producto, MLflow y Airflow y sus dependencias | IMPLEMENTACIÓN (Compose sí obligatorio; nombre `.yaml` no) | No |
 | Entrenamiento inicial | Servicio/tarea de bootstrap idempotente, coordinado por Compose | IMPLEMENTACIÓN | Sí, rendimiento |
-| PostgreSQL | DB producto independiente de DB/metastore de Airflow | PDF | No |
-| Configuración | `.env.example` sin secretos; variables desde `.env` local ignorado | PDF + IMPLEMENTACIÓN | No |
-| FastAPI | Routers, esquemas Pydantic, servicios de limpieza separados | PDF + IMPLEMENTACIÓN | Sí, errores reales |
-| Pronóstico | Baseline simple estacional + un modelo ML global con rasgos de tienda/familia, calendario y promociones | IMPLEMENTACIÓN; baseline y ML sí PDF | Sí |
+| PostgreSQL | DB producto independiente de DB/metastore de Airflow | REQUISITO | No |
+| Configuración | `.env.example` sin secretos; variables desde `.env` local ignorado | REQUISITO + IMPLEMENTACIÓN | No |
+| FastAPI | Routers, esquemas Pydantic, servicios de limpieza separados | REQUISITO + IMPLEMENTACIÓN | Sí, errores reales |
+| Pronóstico | Baseline simple estacional + un modelo ML global con rasgos de tienda/familia, calendario y promociones | IMPLEMENTACIÓN; baseline y ML son requisitos | Sí |
 | Algoritmo | Probar HistGradientBoosting o CatBoost, sin decidir antes del EDA | IMPLEMENTACIÓN | Sí |
-| Cantidad sugerida | Estimar un cuantil de demanda basado en costos si existe distribución/estimación fiable; si no, calibración validada por costo | IMPLEMENTACIÓN; coherencia de costos sí PDF | Sí |
-| Registro | Persistir versión por cada predicción, valores de entrada corregidos y advertencias; mantener observaciones idempotentes | PDF + IMPLEMENTACIÓN | No |
-| Modelo activo | Alias estable en MLflow Registry y caché local/artefacto cargado en memoria | PDF + IMPLEMENTACIÓN | No |
+| Cantidad sugerida | Estimar un cuantil de demanda basado en costos si existe distribución/estimación fiable; si no, calibración validada por costo | IMPLEMENTACIÓN; coherencia de costos es requisito | Sí |
+| Registro | Persistir versión por cada predicción, valores de entrada corregidos y advertencias; mantener observaciones idempotentes | REQUISITO + IMPLEMENTACIÓN | No |
+| Modelo activo | Alias estable en MLflow Registry y caché local/artefacto cargado en memoria | REQUISITO + IMPLEMENTACIÓN | No |
 | Refresco automático | Verificar alias/versión periódicamente, con frecuencia que garantice <2 min | IMPLEMENTACIÓN | No |
-| Sin MLflow | Predicciones con modelo ya cargado; salud degradada y recuperación comprobables | PDF | No |
-| Promoción | Elegir candidato solo si reduce costo validado frente al vigente y supera controles de calidad y estabilidad | IMPLEMENTACIÓN; criterio explícito automatizado sí PDF | Sí |
-| Reentrenamiento | DAG disparado mediante endpoint administrativo; observa datos persistidos y no bloquea API | PDF + IMPLEMENTACIÓN | No |
-| Git | Commits al terminar cada fase; tag `entrega-lab2` solo tras auditoría | IMPLEMENTACIÓN + PDF | No |
+| Sin MLflow | Predicciones con modelo ya cargado; salud degradada y recuperación comprobables | REQUISITO | No |
+| Promoción | Elegir candidato solo si reduce costo validado frente al vigente y supera controles de calidad y estabilidad | IMPLEMENTACIÓN; criterio explícito automatizado es requisito | Sí |
+| Reentrenamiento | DAG disparado mediante endpoint administrativo; observa datos persistidos y no bloquea API | REQUISITO + IMPLEMENTACIÓN | No |
+| Git | Commits de release y tag `entrega-lab2` sobre la versión aceptada | REQUISITO + IMPLEMENTACIÓN | No |
 
 **Cuidados técnicos:**
 - El servicio `mlflow` debe llamarse exactamente así en Compose.
@@ -199,21 +196,21 @@ La estructura de esta sección fue una propuesta de arranque. Las rutas actuales
 
 | Ruta propuesta | Propósito | Naturaleza |
 |---|---|---|
-| `README.md` | Levantar desde cero, ruta de insumos, ejecución, pruebas y evidencias | PDF, nombre explícito |
-| `DECISIONES.md` | Políticas, alternativas, justificaciones del modelo, sugerido y promoción | PDF, nombre explícito |
-| `AGENTS.md` | Contexto, objetivos, instrucciones para Codex | PDF exige archivo equivalente; nombre elegido |
-| `.env.example` | Variables necesarias sin secretos | PDF, nombre explícito |
+| `README.md` | Levantar desde cero, ruta de insumos, ejecución, pruebas y evidencias | Requisito documental |
+| `DECISIONES.md` | Políticas, alternativas, justificaciones del modelo, sugerido y promoción | Requisito documental |
+| `AGENTS.md` | Contexto, objetivos e instrucciones de desarrollo | Requisito documental; nombre elegido |
+| `.env.example` | Variables necesarias sin secretos | Requisito documental |
 | `compose.yaml` | Describir servicios y dependencias de Docker Compose | IMPLEMENTACIÓN para cumplir Compose; **no** exigir archivos YAML arbitrarios |
 | `Dockerfile`, `airflow/Dockerfile` | Construcción de imágenes propias | IMPLEMENTACIÓN si se requieren |
 | `requirements.txt` (u otro lock/gestor) | Dependencias reproducibles | IMPLEMENTACIÓN |
 | `.gitignore`, `.dockerignore` | Excluir secretos, datos y artefactos no permitidos | IMPLEMENTACIÓN |
-| `app/` | Endpoints, esquemas, lógica de calidad, servicios, DB | PDF exige código, organización propuesta |
-| `ml/` | Entrenamiento, features, predicción, evaluación, Registry | PDF exige modelos, organización propuesta |
-| `airflow/dags/reentrenamiento.py` | DAG de reentrenamiento | PDF exige DAG, ruta y nombre propuestos |
-| `tests/` | pytest del contrato, calidad, DB, operación | PDF exige pruebas, rutas propuestas |
-| `data/` | **Carpeta vacía/documentada** para archivos del GES | IMPLEMENTACIÓN; contenidos pendientes |
-| `evidencias/` | Capturas/logs/ejemplos validados | PDF exige evidencia, ruta propuesta |
-| `config/modelo.yaml`, `config/calidad.yaml` | Configuración opcional del modelo/reglas | OPCIONAL; **NO exigidos por PDF** |
+| `app/` | Endpoints, esquemas, lógica de calidad, servicios, DB | El producto requiere código; organización propuesta |
+| `ml/` | Entrenamiento, features, predicción, evaluación, Registry | El producto requiere modelos; organización propuesta |
+| `airflow/dags/reentrenamiento.py` | DAG de reentrenamiento | El producto requiere DAG; ruta y nombre propuestos |
+| `tests/` | pytest del contrato, calidad, DB, operación | Requisito de pruebas; rutas propuestas |
+| `data/` | **Carpeta vacía/documentada** para archivos de entrada | IMPLEMENTACIÓN; contenido local |
+| `evidencias/` | Capturas/logs/ejemplos validados | Requisito de trazabilidad; ruta propuesta |
+| `config/modelo.yaml`, `config/calidad.yaml` | Configuración opcional del modelo/reglas | OPCIONAL; no exigidos |
 | `Makefile`, `pytest.ini` | Comodidades de desarrollo | OPCIONAL |
 
 ### Estructura preliminar
@@ -245,19 +242,19 @@ novamercado/
 │   ├── Dockerfile
 │   └── dags/
 │       └── reentrenamiento.py
-├── data/                     # Insumos del GES: no subir datos al repo
+├── data/                     # Archivos de entrada locales; no subir datos al repo
 ├── tests/
 └── evidencias/
 ```
 
 **La estructura es provisional:** tras inspeccionar insumos y versiones elegidas, se puede ajustar sin alterar obligaciones externas.
 
-## 6. Fases de trabajo con Codex y puertas de salida
+## 6. Plan de implementación y criterios de salida
 
-**Modo de trabajo:** una fase por prompt, cambios acotados, ejecutar pruebas, revisar diferencias, realizar commit, actualizar la matriz. Codex no debe completar fases futuras ni modificar requisitos del anexo sin justificarlo.
+**Modo de trabajo:** una fase por cambio, alcance acotado, pruebas, revisión de diferencias y actualización de la matriz. No modificar requisitos del contrato sin justificarlo.
 
 ### Fase 0 — Auditoría previa (sin implementar lógica)
-- Leer PDF, este plan y los archivos cuando estén disponibles.
+- Leer `REQUISITOS.md` y los archivos de entrada disponibles.
 - Crear/actualizar matriz de cumplimiento y lista de casos de prueba, identificando dependencias.
 - Distinguir explícitamente obligaciones y opciones; identificar contradicciones o datos faltantes.
 - **Salida:** matriz revisada y plan de pruebas; ninguna suposición sobre contenido de CSV no recibidos.
@@ -266,13 +263,13 @@ novamercado/
 - Crear repositorio y `AGENTS.md`, `README.md` inicial, `.env.example`, ignore files, estructura modular.
 - Crear `compose.yaml` con servicio `mlflow` y diseños claros de DB producto y metastore Airflow.
 - Fijar versiones de imágenes y librerías de forma reproducible; parametrizar credenciales.
-- **Salida:** `docker compose config --quiet` sin errores; estructura auditable; ninguna contraseña ni archivo GES versionado.
+- **Salida:** `docker compose config --quiet` sin errores; estructura auditable; ninguna contraseña ni dato de origen versionado.
 
 ### Fase 2 — Contrato FastAPI y política de calidad
-- Implementar los endpoints del anexo y esquemas Pydantic; normalización/limpieza en módulos independientes.
+- Implementar los endpoints del contrato y esquemas Pydantic; normalización/limpieza en módulos independientes.
 - Documentar reglas reparar/advertir/rechazar por tipo de problema, de modo extensible.
 - Montar tests unitarios de API con dependencias simuladas (sin MLflow).
-- **Salida:** pytest independiente de MLflow y respuestas estructuralmente idénticas al anexo (funcionalidad de ML inicialmente simulada).
+- **Salida:** pytest independiente de MLflow y respuestas estructuralmente idénticas al contrato (funcionalidad de ML inicialmente simulada).
 
 ### Fase 3 — Persistencia e idempotencia
 - Implementar tablas/consultas y migraciones o inicialización controlada en PostgreSQL producto.
@@ -281,7 +278,7 @@ novamercado/
 - **Salida:** tests de persistencia y reenvío idéntico con 0 cambios; datos sobreviven reinicio.
 
 ### Fase 4 — Entrenamiento, costo e MLflow
-- Con datos GES reales, EDA enfocado en integridad y separación temporal.
+- Con datos de operación reales, EDA enfocado en integridad y separación temporal.
 - Entrenar baseline y candidato ML; registrar métricas técnicas y costo de negocio.
 - Calibrar `cantidad_sugerida` con costos reales y validación temporal; documentar comparación.
 - Guardar linaje, artefactos, versiones y alias de modelo vigente en MLflow.
@@ -295,7 +292,7 @@ novamercado/
 - **Salida:** ejecución completa, seguimiento por API y pruebas de promoción/no promoción/fallo.
 
 ### Fase 6 — Inicialización automática y resiliencia
-- Bootstrap automático desde datos GES cuando no hay modelo; no repetir en siguientes arranques.
+- Bootstrap automático desde archivos de entrada cuando no hay modelo; no repetir en siguientes arranques.
 - Healthchecks de dependencias y recuperación de MLflow.
 - Pruebas de caída de MLflow (predicción continúa), health degradado <1 min, ok <2 min tras retorno.
 - **Salida:** `docker compose up` desde limpio, `/health` ok ≤10 min sin build; cada reentrenamiento ≤10 min; persistencia post-reinicio.
@@ -306,15 +303,15 @@ novamercado/
 - Ejecutar simulación diaria de observación D−1 → predicción D, fechas futuras, cambios de demanda.
 - **Salida:** un tercero puede clonar, colocar insumos y ejecutar sin intervención manual.
 
-### Fase 8 — Auditoría final y entrega
+### Fase 8 — Auditoría y aceptación operativa
 - Revisar **cada** R01–R31 con archivo, prueba y evidencia, cerrando desviaciones.
 - Verificar ausencia de secretos/datos en Git, versiones fijas y nombre exacto `mlflow`.
 - Probar reinicio sin eliminar volúmenes, caída/retorno de MLflow y actualización sin reinicio.
-- Crear tag exacto `entrega-lab2` en el commit final **antes** de la fecha límite informada en GES; comprobar remoto y acceso del docente.
-- Entregar **únicamente enlace de GitHub** en GES (según PDF).
-- **Salida:** matriz sin requisitos pendientes y entrega reproducible.
+- Crear el tag de versión `entrega-lab2` sobre el commit aceptado; comprobar referencia remota y acceso público.
+- Publicar el enlace del repositorio según el proceso de liberación establecido.
+- **Salida:** matriz trazable y release reproducible.
 
-## 7. Pruebas críticas del evaluador (simulación de punta a punta)
+## 7. Pruebas de aceptación operativa (simulación de punta a punta)
 
 1. Clonar exactamente el tag `entrega-lab2`.
 2. Colocar los archivos publicados en la ruta indicada por `README.md`, sin copiar secretos al repositorio.
@@ -330,24 +327,24 @@ novamercado/
 12. Reiniciar sin borrar volúmenes: datos/Registry/modelo conservados, bootstrap no duplicado.
 13. Verificar `DECISIONES.md`, `README.md`, pruebas y evidencias de todo lo anterior.
 
-## 8. Política de trabajo y control de cambios
+## 8. Política de ingeniería y control de cambios
 
-- Codex trabaja en el repositorio de este laboratorio; **no mezclar con el laboratorio anterior** salvo que se decida expresamente.
+- Mantener el alcance de NovaMercado separado de otros productos y repositorios.
 - Por cada fase: plan pequeño → cambios → tests → revisión → commit → actualizar matriz.
 - No afirmar que algo pasó sin ejecutar comandos o mostrar evidencia.
 - No cambiar nombres de campos, rutas o códigos del contrato por conveniencia.
 - Registrar en `DECISIONES.md` alternativas evaluadas y razones; no inventar resultados experimentales.
-- No subir los archivos de datos del GES sin verificar condiciones de uso; el PDF requiere que el evaluador los coloque localmente, no versionarlos.
+- No versionar archivos de datos de origen; el entorno los suministra localmente y no se copian a las imágenes.
 - Si faltan datos, implementar únicamente componentes que no dependan de observar los archivos reales; **no simular un esquema supuesto como definitivo**.
 - Elegir herramientas y modelos con tiempos de arranque/entrenamiento dentro de los límites impuestos.
 
-## 9. Pendientes y riesgos iniciales — nota histórica superada
+## 9. Riesgos iniciales — nota histórica superada
 
-La tabla siguiente es la lista previa al desarrollo y contiene asuntos ya resueltos o revaluados. No usarla como lista de pendientes actual. La sección 3 es la referencia vigente; los límites todavía abiertos se describen también en README.
+La tabla siguiente registra asuntos identificados antes del desarrollo, varios ya resueltos o revaluados. No usarla como estado actual. La sección 3 es la referencia vigente.
 
 | Tema | Acción posterior |
 |---|---|
-| Archivos GES aún no descargados | Descargar siete insumos e inspeccionarlos antes de definir políticas definitivas o entrenar |
+| Archivos de entrada no disponibles | Disponer de los siete insumos e inspeccionarlos antes de definir políticas o entrenar |
 | Catálogo de errores no exhaustivo | Definir reglas generales y pruebas adversariales, no solo copiar ejemplos |
 | Datos históricos/observaciones potencialmente superpuestos | Definir reconciliación por clave y no duplicar entrenamiento |
 | Métrica de costo y sugeridos | Validar según costos reales por familia, no usar heurística sin comprobar |
@@ -355,22 +352,22 @@ La tabla siguiente es la lista previa al desarrollo y contiene asuntos ya resuel
 | Latencia de actualización del modelo | Cache y refresco comprobado con reloj/tiempos de prueba |
 | Recuperación tras fallo MLflow | Asegurar que un modelo ya cargado sigue disponible; cache/artefactos persistidos |
 | Tiempo máximo 10 min | Medición bajo infraestructura real; limitar candidatos y ejecución del DAG |
-| Fecha límite | Consultar GES; no consta en el PDF |
+| Ventana de operación | Confirmar límites de ejecución en el entorno objetivo |
 | Ambigüedad de reglas puntuales de limpieza | Resolver con inspección de datos y registrar políticas explícitas en `DECISIONES.md` |
 
 ## 10. Snapshot inicial de estado — histórico, superado
 
 Las casillas y la siguiente acción de esta sección corresponden al inicio del proyecto. Ya no representan el estado actual; consultar la sección 3 y las actualizaciones fechadas.
 
-- [x] PDF de 7 páginas revisado y requisitos extraídos.
-- [x] Plan y matriz de cumplimiento documentados.
-- [ ] Insumos GES descargados.
+- [x] Requisitos funcionales y operativos documentados.
+- [x] Especificación y matriz de aceptación documentadas.
+- [ ] Archivos de entrada disponibles localmente.
 - [ ] Repositorio inicializado.
-- [ ] Fase 0 ejecutada en Codex.
+- [ ] Fase 0 de preparación ejecutada.
 - [ ] Implementación y evidencias.
 - [ ] Auditoría final y tag `entrega-lab2`.
 
-**Siguiente acción sugerida:** guardar este archivo en la raíz del repositorio futuro; cuando estén disponibles los insumos, descargarlos y ejecutar la Fase 0 en Codex para ajustar matriz y secuencia según los datos reales. Hasta entonces, este documento es la referencia de planificación, no una declaración de que el laboratorio ya cumple requisitos.
+**Nota histórica:** este snapshot describe el estado previo al inicio de la implementación. Para el estado vigente, consultar la matriz de requisitos y las evidencias enlazadas.
 
 ## 11. Bitácora histórica de avance
 
@@ -386,7 +383,7 @@ de insumos y repositorio: Git ya está inicializado con remoto `origin`; los cin
 CSV, catálogo y ejemplos están en `data/` (tras moverlos desde `../datos_lab2/`)
 y se han inspeccionado. Su contenido está ignorado por Git salvo `.gitkeep`;
 Compose y `.env.example` usan `./data` por defecto.
-El PDF de siete páginas fue contrastado nuevamente sin discrepancias sustanciales.
+La especificación funcional se contrastó nuevamente y no se encontraron discrepancias sustanciales.
 
 Fase 1: estructura modular, contexto, documentación inicial, ignore files,
 variables de ejemplo, dependencias directas fijas, Dockerfile y Compose creados.
@@ -411,7 +408,7 @@ Siguiente fase: contrato FastAPI y política de calidad (Fase 2).
   solicitudes canónicas, calidad por campo y rechazo explicativo preparado para 422.
 - Políticas E01–E10 y casos generales documentados en `DECISIONES.md`.
 - Evidencia: `.venv/bin/python -m pytest -q`, Python 3.12: **49 passed**,
-  incluidos los 12 JSON docentes. Sin servidor ni paquete MLflow.
+  incluidos los 12 ejemplos de entrada. Sin servidor ni paquete MLflow.
 - R02–R05 y R28 avanzan parcialmente; siguen pendientes la integración HTTP,
   las respuestas completas y las pruebas de endpoints. R08 no se declara cerrado:
   la idempotencia persistida pertenece a Fase 3.
@@ -419,7 +416,7 @@ Siguiente fase: contrato FastAPI y política de calidad (Fase 2).
 
 ### Fase 2.2 — Endpoints de predicción y observaciones
 
-- Implementados ambos POST del anexo, reutilizando normalización, con esquemas
+- Implementados ambos POST del contrato, reutilizando normalización, con esquemas
   de respuesta, códigos 200/422 y protocolos sustituibles de predicción/registro.
 - Sin backend configurado responden 503, sin simular resultados o guardados.
 - Evidencia: `.venv/bin/python -m pytest -q`: **91 passed**, una advertencia de
@@ -646,7 +643,7 @@ quedan pendientes de autorización para ejecutar un reentrenamiento real.
 
 ### Fase 5 — Modelo y salud
 
-Implementados /modelo y /health según PDF. Carga inicial no bloqueante en
+Implementados `/modelo` y `/health` según el contrato de producto. Carga inicial no bloqueante en
 lifespan, refresco máximo 30 s, snapshot servido consistente, continuidad ante
 caída MLflow. Sondas paralelas DB/MLflow/Airflow y estado degradado con motivo.
 Verificación HTTP con fuente simulada e intervalo real: actualización en 30.04 s
@@ -725,7 +722,7 @@ detenidos al acabar; todos los volúmenes conservados.
 Inventario principal idéntico: 14 runs, mismas versiones y champion 1. Evidencias:
 `evidencias/fase7_resiliencia.json`, `evidencias/fase7_promocion_comparacion.csv`,
 `evidencias/fase7_promocion_decision.md`. Certifica la operación en escenario
-sintético controlado; no representa una mejora predictiva en datos GES.
+sintético controlado; no representa una mejora predictiva en datos futuros.
 
 Regresión final de promoción/resiliencia: **284 passed, 0 skipped** con PostgreSQL
 y MLflow propios de pytest, incluidas ejecuciones SDK de DAG. Inventario principal
@@ -756,7 +753,7 @@ borró ningún volumen.
 
 ### Fase 8.2 — Documentación consolidada (2026-11-15)
 
-README, AGENTS y DECISIONES se contrastaron con el PDF, Compose, código y
+README, AGENTS y DECISIONES se contrastaron con Compose, código y
 evidencias existentes. No ejecutó pytest ni contenedores. La matriz de la
 sección 3 es la única tabla de cumplimiento vigente.
 
@@ -809,5 +806,34 @@ del refresco del alias; su diagnóstico queda en
 `evidencias/r31_iteracion_fallo_refresco.json` y no se considera una aceptación
 fallida del producto. Resultado final completo en
 `evidencias/r31_operacion_extendida.json`. Esta simulación cierra R31 para los
-escenarios ejecutados, no representa el comportamiento futuro del GES ni
+escenarios ejecutados, no representa el comportamiento de demanda futura ni
 sustituye R26 (clon limpio) o R29 (tag y acceso remoto).
+
+### Fase 8.5 — Prueba de clon limpio R26 (2026-11-15)
+
+Se clonó `origin/dev` en `ae44fd722a6ba43d027f33f53d2cabb1919fbd37` con
+árbol limpio. Antes de iniciar Docker se verificó un proyecto Compose único,
+puertos loopback 59402–59404 libres, tags de imagen exclusivos, ocho volúmenes
+sin colisión y PostgreSQL de producto separado del de Airflow. Los datos se
+montaron desde el repositorio original en solo lectura y se excluyeron del
+clon/contextos de build.
+
+El comando de arranque del README (`docker compose up --build -d`) funcionó:
+`product-init` creó el experimento y el modelo champion v1 automáticamente;
+`/health` y `/modelo` respondieron 200. Tras `docker compose stop` y `up -d`,
+el bootstrap reutilizó v1, health/modelo siguieron disponibles y el reenvío
+idéntico de una observación devolvió 0 registros. No se ejecutó inicialización
+manual. Se usó una observación sintética, sin registrar su valor en esta
+evidencia.
+
+Desviaciones del README: se fijaron `COMPOSE_PROJECT_NAME`, `COMPOSE_FILE`,
+tags temporales de imagen y puertos exclusivos; el bucle de health consultó
+59402 en vez de 8000. `.env.example` se completó con credenciales temporales
+locales y `DATA_DIR` apuntó al directorio de datos externo mediante bind de
+solo lectura. No se cambió el Compose principal. El entorno temporal quedó
+detenido con `stop`; sus volúmenes se conservaron. El inventario del entorno
+principal (15 runs MLflow, alias champion y versiones) quedó igual. Evidencia:
+`evidencias/r26_clone_origin_dev.json`.
+
+R26 queda verificado con estas adaptaciones explícitas; no requirió pasos
+adicionales de inicialización.

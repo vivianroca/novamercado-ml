@@ -1,6 +1,6 @@
 # Decisiones técnicas y de producto
 
-Contrato funcional: PDF `Laboratorio_2_PD_26_c.pdf`. Estado de requisitos y vínculo a pruebas/evidencias: `PLAN_LABORATORIO_2_NOVAMERCADO.md`.
+Contrato funcional y criterios de aceptación: `REQUISITOS.md`. Las pruebas y evidencias trazables se enlazan desde su matriz.
 
 ## Datos y calidad de entrada
 
@@ -27,7 +27,7 @@ Los valores de ejemplo y nombres exactos están en `.env.example`; los marcadore
 
 | Variable | Uso |
 |---|---|
-| `DATA_DIR` | Directorio de CSV y catálogo GES montado en solo lectura. |
+| `DATA_DIR` | Directorio de CSV y catálogo de datos montado en solo lectura. |
 | `PRODUCT_DB`, `PRODUCT_DB_USER`, `PRODUCT_DB_PASSWORD` | Base y credenciales del PostgreSQL del producto. |
 | `AIRFLOW_DB`, `AIRFLOW_DB_USER`, `AIRFLOW_DB_PASSWORD` | Base y credenciales independientes del metastore Airflow. |
 | `AIRFLOW_ADMIN_USER`, `AIRFLOW_ADMIN_PASSWORD` | Autenticación de Airflow y llamada administrativa desde API. |
@@ -57,7 +57,7 @@ Estas son decisiones de implementación actuales, posteriores al análisis de da
 
 `product-db` y `airflow-db` son PostgreSQL separados. El esquema `novamercado` guarda solicitudes, acciones de calidad, predicciones con versión, observación vigente e historial. Una respuesta de predicción 200 requiere que las filas se hayan confirmado. Observaciones usan `(tienda_id, fecha, familia_id)` como clave: nuevo o cambio cuenta 1, idéntico cuenta 0; solicitud, acción e historial forman una transacción.
 
-Rutas PDF: `POST /v1/prediccion` y `/v1/observaciones`; administración `POST /admin/reentrenar` (sin cuerpo, 202 con ID o 503) y `GET /admin/reentrenar/{id}` (200, 404 desconocido, 503 si no es verificable); `GET /modelo` (nombre/alias/version textuales); `GET /health` (200 ok/degradado con motivo, 503 sin modelo). FastAPI publica `/docs`, `/redoc` y `/openapi.json`.
+Rutas del contrato: `POST /v1/prediccion` y `/v1/observaciones`; administración `POST /admin/reentrenar` (sin cuerpo, 202 con ID o 503) y `GET /admin/reentrenar/{id}` (200, 404 desconocido, 503 si no es verificable); `GET /modelo` (nombre/alias/version textuales); `GET /health` (200 ok/degradado con motivo, 503 sin modelo). FastAPI publica `/docs`, `/redoc` y `/openapi.json`.
 
 ## Pronóstico y sugerido
 
@@ -83,7 +83,7 @@ En arranque, `product-init` migra idempotentemente y consulta Registry. Reutiliz
 
 FastAPI carga snapshot al iniciar, refresca el alias cada 30 s como máximo e intercambia tras validar; conserva el modelo ante caída de MLflow. `/health` comprueba DB producto, MLflow, metadatabase/scheduler/dag-processor Airflow y snapshot. En Compose aislado: health degradado 1,38 s después de detener MLflow, predicciones continuaron; salud ok 29,03 s después de iniciarlo. Promoción real aislada actualizó FastAPI 13,24 s después de terminar DAG sin reinicio.
 
-Los CSV de la demostración de drift son sintéticos; su promoción no es una afirmación de mejora sobre datos futuros del GES. Quedan a cargo de la matriz los checks de clon limpio, tag/remoto, simulación extendida y evidencias de entrega no cubiertas por aceptación actual.
+Los CSV de la demostración de drift son sintéticos; su promoción no es una afirmación de mejora sobre la demanda futura. La matriz de `REQUISITOS.md` enlaza los checks de clon limpio, tag/remoto, simulación extendida y las evidencias de aceptación.
 
 ## Evidencias
 
