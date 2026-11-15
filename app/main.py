@@ -1,4 +1,4 @@
-"""Aplicación HTTP; los proveedores de ML y DB aún no están configurados."""
+"""Aplicación HTTP con PostgreSQL del producto; predictor real aún pendiente."""
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse

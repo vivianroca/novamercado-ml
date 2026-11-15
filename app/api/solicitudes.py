@@ -5,10 +5,10 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Body, Depends
 from pydantic import ValidationError
 
-from app.api.dependencias import obtener_catalogos, obtener_predictor, obtener_registro
+from app.api.dependencias import obtener_catalogos, obtener_predictor, obtener_registro, obtener_registro_predicciones
 from app.calidad.normalizacion import Catalogos, normalizar_observaciones, normalizar_prediccion
 from app.schemas.respuestas import RespuestaObservaciones, RespuestaPrediccion, ResultadoPrediccion
-from app.servicios.interfaces import Predictor, RegistroObservaciones, ServicioNoDisponible
+from app.servicios.interfaces import Predictor, RegistroObservaciones, RegistroPredicciones, ServicioNoDisponible
 
 router = APIRouter(prefix="/v1")
 
@@ -18,6 +18,7 @@ def predecir(
     entrada: Annotated[Any, Body()],
     catalogos: Annotated[Catalogos, Depends(obtener_catalogos)],
     predictor: Annotated[Predictor, Depends(obtener_predictor)],
+    registro: Annotated[RegistroPredicciones, Depends(obtener_registro_predicciones)],
 ):
     solicitud, calidad = normalizar_prediccion(entrada, catalogos)
     try:
@@ -28,10 +29,12 @@ def predecir(
     recibidas = [p.familia_id for p in resultado.predicciones]
     if set(recibidas) != esperadas or len(recibidas) != len(esperadas):
         raise ServicioNoDisponible("El proveedor no devolvió exactamente las familias solicitadas")
-    return RespuestaPrediccion(
+    respuesta = RespuestaPrediccion(
         tienda_id=solicitud.tienda_id, fecha=solicitud.fecha, calidad=calidad,
         **resultado.model_dump(),
     )
+    registro.guardar_prediccion(entrada, solicitud, calidad, resultado)
+    return respuesta
 
 
 @router.post("/observaciones", response_model=RespuestaObservaciones, status_code=200)

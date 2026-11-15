@@ -65,3 +65,28 @@ importar. Pruebas sintéticas se ejecutan sin GES; las pruebas adicionales de lo
 - La aplicación se puede crear aisladamente con `crear_app()`. Los catálogos se
   leen al resolver la dependencia y también pueden sustituirse; no se requiere
   MLflow ni acceder a servicios externos para ejecutar pytest.
+
+## Fase 3.1 — Persistencia del producto
+
+- Esquema PostgreSQL `novamercado` exclusivo de `product-db`. La conexión usa solo
+  variables `PRODUCT_DB_*`; no se utiliza ni modifica el metastore de Airflow.
+- Se registra cada solicitud aceptada en una fila UUID con entrada original,
+  canónica, tienda/fecha y calidad; acciones ordenadas conservan reparaciones y
+  advertencias. Se guardan solicitudes repetidas para trazabilidad, sin duplicar
+  observaciones ni cambios históricos.
+- Predicciones se vinculan a su solicitud, cada una con versión de modelo, venta
+  esperada y sugerido. No hay unicidad por tienda/fecha: se admiten varios pronósticos.
+  El endpoint solo devuelve 200 después de confirmar su registro.
+- Observación vigente: clave primaria `(tienda_id, fecha, familia_id)`. UPSERT con
+  `IS DISTINCT FROM` actualiza exclusivamente cambios reales, sin alterar timestamps
+  ni linaje del valor vigente ante reenvío idéntico. Cada valor nuevo/modificado
+  agrega historial. El conteo se devuelve únicamente después del commit.
+- Solicitud, acciones, valores e historial se confirman o revierten juntos. El
+  orden por familia reduce riesgo de deadlocks entre lotes concurrentes; PostgreSQL
+  serializa conflictos por clave. Un error de DB devuelve 503 sin revelar credenciales.
+- El esquema se inicializa con SQL en el primer volumen de producto y existe un
+  inicializador explícito repetible para bases existentes. No se aplica DDL en
+  cada petición. Cambios futuros de esquema necesitarán migraciones versionadas.
+- No se carga aún histórico a DB ni se implementan ML/reentrenamiento. Rechazos
+  previos a normalización no se guardan en esta fase. No se declara probada la
+  conservación tras reinicio de contenedores hasta ejecutar la prueba operativa.

@@ -13,7 +13,9 @@ Trabajar una fase por solicitud. No adelantar lógica de fases posteriores.
 - No afirmar funcionamiento sin pruebas. Actualizar documentación y matriz con evidencia.
 - No construir ni arrancar contenedores salvo autorización del usuario.
 
-Estado: Fase 2.2, esquemas, normalización y dos endpoints POST de negocio.
-Proveedores sustituibles; sin DB/modelo configurados se responde 503, sin inventar
-resultados. Sin persistencia, ML, DAG ni bootstrap de negocio.
+Estado: Fase 3.1, esquemas, normalización, dos endpoints POST y persistencia
+PostgreSQL del producto. Sin modelo configurado se responde 503. Observaciones
+idempotentes, solicitudes/calidad y predicciones versionadas transaccionales.
+Sin ML, DAG ni bootstrap de negocio. Integración DB con `TEST_PRODUCT_DB_DSN`
+contra servidor exclusivo de pruebas; crea y elimina una base temporal.
 Pruebas: `.venv/bin/python -m pytest -q` (Python 3.12).

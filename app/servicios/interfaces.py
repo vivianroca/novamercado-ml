@@ -25,3 +25,10 @@ class RegistroObservaciones(Protocol):
         calidad de forma atómica. Si no puede confirmar, lanza ServicioNoDisponible.
         """
         ...
+
+
+class RegistroPredicciones(Protocol):
+    def guardar_prediccion(self, original: dict[str, Any], solicitud: SolicitudPrediccion,
+                           calidad: Calidad, resultado: ResultadoPrediccion):
+        """Confirma solicitud, calidad y predicciones con versión en una transacción."""
+        ...

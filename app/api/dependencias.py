@@ -3,7 +3,9 @@
 import os
 
 from app.calidad.normalizacion import Catalogos
+from app.db.repositorio import RepositorioProducto
 from app.servicios.interfaces import ServicioNoDisponible
+from app.servicios.interfaces import RegistroObservaciones, RegistroPredicciones
 
 
 def obtener_catalogos() -> Catalogos:
@@ -18,15 +20,14 @@ def obtener_predictor():
     return PredictorNoConfigurado()
 
 
-def obtener_registro():
-    return RegistroNoConfigurado()
+def obtener_registro() -> RegistroObservaciones:
+    return RepositorioProducto()
+
+
+def obtener_registro_predicciones() -> RegistroPredicciones:
+    return RepositorioProducto()
 
 
 class PredictorNoConfigurado:
     def predecir(self, solicitud):
         raise ServicioNoDisponible("Modelo de predicción no configurado")
-
-
-class RegistroNoConfigurado:
-    def guardar(self, original, solicitud, calidad):
-        raise ServicioNoDisponible("Almacenamiento de observaciones no configurado")

@@ -1,8 +1,8 @@
 # NovaMercado ML
 
-Fase 2.2: esquemas, normalización y endpoints POST `/v1/prediccion` y
-`/v1/observaciones`. Aún no hay modelo, DB de negocio, DAG ni entrenamiento
-inicial. No es un producto listo para evaluar.
+Fase 3.1: esquemas, normalización, endpoints POST y persistencia PostgreSQL del
+producto. Aún no hay modelo, DAG ni entrenamiento inicial.
+No es un producto listo para evaluar.
 
 Los insumos del GES están en `data/`, dentro del proyecto. La ruta es configurable con
 `DATA_DIR`; se monta en `/data` en solo lectura y no se copia a las imágenes.
@@ -37,7 +37,7 @@ Pruebas locales de normalización (Python 3.12, sin Docker ni MLflow):
 
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install pydantic==2.11.4 pytest==8.3.5 fastapi==0.115.12 httpx==0.28.1
+.venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m pytest -q
 ```
 
@@ -46,10 +46,26 @@ GES; con los datos locales también se verifican los ejemplos docentes.
 
 Los endpoints devuelven 200 con el contrato del PDF cuando reciben resultados
 de proveedores configurados y 422 con `detail` ante solicitudes inválidas.
-En esta fase los proveedores reales están ausentes: solicitudes válidas responden
-503 con `detail`, sin predicciones ni registros inventados. Esto es una limitación
-provisional, no evidencia del cumplimiento operativo completo.
+El predictor real sigue ausente: predicciones válidas responden 503 con `detail`.
+Observaciones usan PostgreSQL del producto; si no está configurado o el guardado
+no se puede confirmar, responden 503. No se inventan predicciones ni registros.
 
 Interfaces en `app/servicios/interfaces.py`; sustituir `obtener_predictor`,
 `obtener_registro` y, opcionalmente, `obtener_catalogos` mediante
 `app.dependency_overrides`, como en `tests/test_endpoints.py`.
+
+Persistencia: `app/db/esquema.sql` crea el esquema `novamercado`, solicitudes
+originales/canónicas, acciones de calidad, predicciones versionadas y observaciones
+con historial. Compose monta este SQL únicamente en `product-db`; PostgreSQL lo
+aplica automáticamente en el primer arranque con volumen vacío. Para una base
+existente, ejecutar explícitamente `python -m app.db.migrar` con variables
+`PRODUCT_DB_HOST`, `PRODUCT_DB_NAME`, `PRODUCT_DB_USER`, `PRODUCT_DB_PASSWORD`
+y opcionalmente `PRODUCT_DB_PORT` (5432). Este comando no lee `.env` automáticamente;
+las variables deben estar exportadas. La inicialización es transaccional y repetible;
+futuros cambios estructurales requerirán nuevas migraciones.
+
+Pruebas de integración: definir `TEST_PRODUCT_DB_DSN` contra un servidor PostgreSQL
+**exclusivo de pruebas**, con permiso de crear bases, y ejecutar pytest. Las pruebas
+crean una base aleatoria y la eliminan al terminar; no modifican tablas de la base
+indicada en el DSN. Sin esta variable se omiten explícitamente las pruebas reales
+de DB; las demás se ejecutan sin PostgreSQL ni MLflow. No usar el metastore Airflow.

@@ -3,7 +3,7 @@ import copy
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencias import obtener_catalogos, obtener_predictor, obtener_registro
+from app.api.dependencias import obtener_catalogos, obtener_predictor, obtener_registro, obtener_registro_predicciones
 from app.calidad.normalizacion import Catalogos
 from app.main import crear_app
 from app.servicios.interfaces import ServicioNoDisponible
@@ -31,9 +31,15 @@ class RegistroPrueba:
         self.llamadas.append((original, solicitud, calidad))
         return self.conteo
 
+    def guardar_prediccion(self, original, solicitud, calidad, resultado):
+        self.llamadas.append((original, solicitud, calidad, resultado))
+
 
 @pytest.fixture
-def entorno():
+def entorno(monkeypatch):
+    # Las pruebas aisladas nunca deben usar una DB configurada en el shell.
+    for clave in ("PRODUCT_DB_HOST", "PRODUCT_DB_NAME", "PRODUCT_DB_USER", "PRODUCT_DB_PASSWORD"):
+        monkeypatch.delenv(clave, raising=False)
     app = crear_app()
     predictor, registro = PredictorPrueba(), RegistroPrueba()
     app.dependency_overrides[obtener_catalogos] = lambda: Catalogos(
@@ -41,6 +47,7 @@ def entorno():
         {"abarrotes": "abarrotes", "lacteos": "lacteos"})
     app.dependency_overrides[obtener_predictor] = lambda: predictor
     app.dependency_overrides[obtener_registro] = lambda: registro
+    app.dependency_overrides[obtener_registro_predicciones] = lambda: registro
     with TestClient(app) as cliente:
         yield cliente, predictor, registro, app
 
@@ -177,3 +184,15 @@ def test_fallo_de_proveedor_503(entorno):
     respuesta = cliente.post("/v1/prediccion", json=prediccion())
     assert respuesta.status_code == 503
     assert respuesta.json()["detail"]
+
+
+def test_no_responde_prediccion_si_no_puede_registrarla(entorno):
+    cliente, predictor, _, app = entorno
+    class RegistroFallido:
+        def guardar_prediccion(self, original, solicitud, calidad, resultado):
+            raise ServicioNoDisponible("No se pudo confirmar el registro de la predicción")
+    app.dependency_overrides[obtener_registro_predicciones] = RegistroFallido
+    respuesta = cliente.post("/v1/prediccion", json=prediccion())
+    assert predictor.llamadas
+    assert respuesta.status_code == 503
+    assert "predicciones" not in respuesta.json()

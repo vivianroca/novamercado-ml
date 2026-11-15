@@ -63,7 +63,7 @@ El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. 
 | R05 | pytest del contrato independientes de un MLflow activo | 2 | Ejecutar suite con MLflow apagado/mockeado | Pendiente |
 | R06 | PostgreSQL de producto distinto al de Airflow, en Docker | 3 | Comprobar separación y conexiones con Compose | Pendiente |
 | R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | 1, 3 | Consultar DB tras solicitudes y reinicio | Pendiente |
-| R08 | Observaciones idempotentes | 3, 7 | Reenvío idéntico: HTTP 200 y `registros_guardados: 0`; sin duplicados | Pendiente |
+| R08 | Observaciones idempotentes | 3, 7 | `tests/test_persistencia.py`: HTTP 200, reenvío 0, nuevos + modificados, concurrencia sin duplicados; evidencia en `evidencias/fase_3_1_postgresql.md` | Verificado |
 | R09 | Baseline y al menos un modelo ML que mejore al baseline | 3 | Evaluación temporal documentada y reproducible | Pendiente |
 | R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | 2–3 | Comparativa calculada con fórmula del PDF | Pendiente |
 | R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Casos con distintas relaciones de costos y explicación | Pendiente |
@@ -413,3 +413,42 @@ Siguiente fase: contrato FastAPI y política de calidad (Fase 2).
 - R01, R03–R05 avanzan con pruebas HTTP sin MLflow. No se declaran cerrados R01/R07/R08:
   faltan predicción real y persistencia/idempotencia. Endpoints administrativos y
   salud/modelo también siguen pendientes. No se implementaron ML ni persistencia.
+
+### Fase 3.1 — Esquema y capa PostgreSQL del producto
+
+- Implementados esquema SQL, inicializador explícito y repositorio transaccional
+  para solicitudes originales/canónicas, acciones de calidad, predicciones con
+  versión y observaciones vigentes con historial de cambios.
+- Observaciones: UPSERT por tienda/fecha/familia, sin actualizar reenvíos idénticos;
+  contador solo después de commit. Predicciones: se registra antes de responder 200.
+- `product-db` monta la inicialización SQL exclusivamente en su volumen nuevo.
+  No se cambió ni utilizó la base Airflow.
+- Evidencia aislada: pytest **94 passed, 6 skipped**, una advertencia externa de
+  Starlette/AnyIO. Las seis pruebas omitidas requieren `TEST_PRODUCT_DB_DSN` y
+  verifican idempotencia real, concurrencia, historial, rollback, predicciones
+  repetidas e integración HTTP contra PostgreSQL.
+- No hay PostgreSQL local ni contenedores activos. Se solicitó autorización para
+  iniciar un PostgreSQL temporal de pruebas; mientras esté pendiente, R07/R08
+  permanecen pendientes de integración real. Tampoco se declara probada la
+  persistencia tras reinicio. Sin ML ni reentrenamiento.
+
+### Verificación PostgreSQL de Fase 3.1
+
+Con autorización del usuario se inició únicamente PostgreSQL 16.8 temporal,
+con almacenamiento tmpfs, puerto local aleatorio y sin montar volúmenes existentes.
+Suite completa: **100 passed, 0 skipped**, una advertencia de Starlette/AnyIO.
+Pasaron las seis pruebas de integración, incluidos idempotencia, concurrencia,
+rollback y HTTP con nuevos + modificados. R08 verificado; R07 sigue pendiente
+de la prueba operativa de reinicio. El contenedor temporal se detuvo al finalizar.
+Detalle: `evidencias/fase_3_1_postgresql.md`. No se implementó ML.
+
+### Conexión de endpoints con PostgreSQL real
+
+Se verificó el cableado existente con tres pruebas adicionales sin sustituir
+dependencias FastAPI: catálogos por `DATA_DIR`, conexión por `PRODUCT_DB_*` y
+repositorio real. Observaciones: HTTP 200 con conteos 1, 0, 2, 0 y consultas de
+auditoría. Predicción sin modelo: HTTP 503 sin escrituras. Rechazo 422 y error de
+DB 503 tampoco confirman registros. Suite completa contra PostgreSQL temporal:
+**103 passed, 0 skipped**, una advertencia de Starlette/AnyIO. Contenedor detenido,
+sin modificar volúmenes existentes. Reinicio operativo del producto aún pendiente;
+sin ML ni reentrenamiento.
