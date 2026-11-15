@@ -2,11 +2,11 @@
 
 ## Fuente y alcance
 
-El contrato se contrasta con `Laboratorio_2_PD_26_c.pdf`; requisitos y evidencias se controlan en `PLAN_LABORATORIO_2_NOVAMERCADO.md`. La implementación vigente abarca FastAPI, PostgreSQL del producto, MLflow 3.17.2, Airflow 3.3.2 y arranque con Docker Compose. No trates notas históricas del plan como estado actual; revisa la matriz y las evidencias más recientes.
+El contrato funcional y los criterios de aceptación se documentan en `REQUISITOS.md`. La implementación vigente abarca FastAPI, PostgreSQL del producto, MLflow 3.17.2, Airflow 3.3.2 y arranque con Docker Compose. No trates notas históricas como estado actual; revisa la matriz y las evidencias más recientes.
 
 ## Límites obligatorios
 
-- Conserva literalmente rutas, campos y códigos HTTP del PDF. Consulta `/openapi.json` y pruebas antes de modificar contratos.
+- Conserva literalmente las rutas, campos y códigos HTTP del contrato. Consulta `/openapi.json` y las pruebas antes de modificarlo.
 - Mantén limpieza en `app/calidad/normalizacion.py`, esquemas en `app/schemas/`, adaptadores HTTP en `app/api/`, persistencia en `app/db/` y servicios en `app/servicios/`.
 - `data/` contiene insumos privados: nunca versionarlos ni copiarlos a imágenes. `.env` contiene credenciales: no leerlo en comandos que impriman contenido, versionarlo ni incluirlo en evidencias.
 - PostgreSQL de producto (`product-db`) y metastore Airflow (`airflow-db`) son independientes. Servicio MLflow se llama `mlflow`.
@@ -38,4 +38,4 @@ No construir/arrancar servicios o ejecutar runners de entrenamiento salvo solici
 
 ## Estado probado y límites conocidos
 
-Evidencias recientes: Fase 7 aislada verifica Registry vacío, arranque, reentrenamiento, promoción efectiva 1→2, refresco de API, caída/retorno de MLflow y persistencia. Fase 8.1 documenta R02–R05, R07, R10–R12 y R17. La matriz sigue siendo la autoridad para requisitos pendientes: clon limpio, tag/remoto/entrega y evidencias de API aún pueden quedar abiertos aunque el código exista.
+Evidencias recientes: la aceptación aislada verifica Registry vacío, arranque, reentrenamiento, promoción efectiva, refresco de API, caída/retorno de MLflow y persistencia. La matriz de `REQUISITOS.md` es la referencia para el estado de cada criterio, aunque exista implementación de código.
