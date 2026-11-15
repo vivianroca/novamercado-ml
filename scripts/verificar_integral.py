@@ -101,7 +101,7 @@ def ejecutar(data_dir, salida, *, resiliencia=False):
         else:
             from escenario_resiliencia import generar_escenario, simular_dias
         data_dir = generar_escenario(trabajo/'datos')
-    env_path = trabajo / '.env' 
+    env_path = trabajo / '.env'
     puertos = set()
     while len(puertos) < 3:
         puertos.add(puerto_libre())
