@@ -1,17 +1,26 @@
 # NovaMercado — pronóstico de ventas
 
-Servicio FastAPI para pronósticos diarios por tienda y familia. Persiste solicitudes, resultados y observaciones en PostgreSQL; sirve un modelo `champion` de MLflow y permite reentrenar mediante Airflow. El contrato se contrastó con `Laboratorio_2_PD_26_c.pdf`.
+NovaMercado estima la venta diaria por tienda y familia, propone cantidades ajustadas al costo de faltantes y sobrantes, registra observaciones y permite evaluar nuevos modelos con promoción controlada. FastAPI sirve el modelo `champion` de MLflow; PostgreSQL conserva solicitudes y observaciones, y Airflow coordina el reentrenamiento.
+
+La validación temporal común cubrió 6.720 casos entre 2026-01-04 y 2026-02-28. HGB mejoró las métricas técnicas y redujo el costo de inventario frente al baseline:
+
+| Modelo | MAE ↓ | RMSE ↓ | WAPE ↓ | Costo de inventario ↓ |
+|---|---:|---:|---:|---:|
+| Baseline estacional | 53,6474 | 95,5896 | 26,1719 % | 239.897,90 |
+| HistGradientBoosting (HGB) | 38,5310 | 69,6758 | 18,7973 % | 197.537,70 |
+
+La comparación y sus límites están documentados en [`evidencias/comparacion_histgradient.json`](evidencias/comparacion_histgradient.json). El costo corresponde a ese periodo y a los costos por familia suministrados; no garantiza el mismo resultado en periodos futuros.
 
 ## Arranque desde cero
 
-1. Instala Docker Compose y coloca en `data/` los archivos publicados por el curso: `tiendas.csv`, `familias.csv`, `historico_ventas.csv`, `feriados.csv`, `costos.csv`, `catalogo_errores.md` y `ejemplos/`. La ruta puede cambiarse con `DATA_DIR`. Los datos se montan en solo lectura y están ignorados por Git.
+1. Instala Docker Compose y coloca en `data/` los insumos entregados por el curso: `tiendas.csv`, `familias.csv`, `historico_ventas.csv`, `feriados.csv`, `costos.csv`, `catalogo_errores.md` y `ejemplos/`. No se incluyen en Git ni en las imágenes. Se montan en solo lectura; para otra ubicación configura `DATA_DIR`.
 2. Prepara el entorno:
 
    ```sh
    cp .env.example .env
    ```
 
-   Sustituye todos los marcadores. Genera una clave Fernet válida, por ejemplo con `cryptography.fernet.Fernet.generate_key()`. Usa claves y contraseñas propias; `.env` está excluido de Git y de la imagen.
+   Sustituye todos los valores `REEMPLAZAR` con contraseñas propias. Para generar claves, instala `cryptography` con `python3 -m pip install cryptography`; luego ejecuta `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` para `AIRFLOW_FERNET_KEY` y `python3 -c "import secrets; print(secrets.token_urlsafe(32))"` para `AIRFLOW_SECRET_KEY`. No compartas ni subas `.env`: está excluido de Git y de las imágenes. `.env.example` contiene solo marcadores.
 
 3. Arranca el producto:
 
@@ -156,6 +165,6 @@ docker compose --env-file .env config --quiet
 
 `docker compose config --quiet` comprueba la configuración, no inicia servicios ni demuestra disponibilidad. Si `/health` está degradado, `motivo` identifica la dependencia observada. Si Airflow no muestra el DAG, consulta los logs de `airflow-dag-processor`. Si la API no arranca, revisa primero el resultado de `product-init`, MLflow y PostgreSQL.
 
-## Estado de entrega
+## Verificación y evidencias
 
-La documentación de cumplimiento está en `PLAN_LABORATORIO_2_NOVAMERCADO.md`; las notas de planificación previas están marcadas como históricas y la matriz es la referencia vigente. R31 cuenta con la simulación extendida descrita en `evidencias/r31_operacion_extendida.json`. R26 se verificó desde un clon limpio de `origin/dev`; el aislamiento, bootstrap automático, disponibilidad y persistencia tras reinicio están en `evidencias/r26_clone_origin_dev.json`. Sigue pendiente el tag `entrega-lab2` con verificación del acceso docente al remoto. Las capturas HTTP contractuales están en `evidencias/respuestas_api.json`; las respuestas de predicción con modelo real se identifican por separado. Las pruebas aisladas demuestran los escenarios descritos, no garantizan el rendimiento con hardware distinto ni cambios futuros en GES.
+La matriz y el detalle de aceptación están en [`PLAN_LABORATORIO_2_NOVAMERCADO.md`](PLAN_LABORATORIO_2_NOVAMERCADO.md). El arranque limpio, bootstrap, salud, modelo y persistencia tras reinicio se verificaron en un clon aislado y se registraron en [`evidencias/r26_clone_origin_dev.json`](evidencias/r26_clone_origin_dev.json). Las pruebas aisladas documentan los escenarios ejecutados; no garantizan el rendimiento en hardware distinto ni ante cambios futuros en GES.
