@@ -52,7 +52,7 @@ La inspección de cabeceras, tipos, rangos, nulos, duplicados, claves y ejemplos
 **Estado actualizado al 2026-11-15.** `Verificado` requiere prueba/evidencia indicada. `Parcial` significa que existe implementación o un escenario limitado, pero falta la aceptación completa. `Pendiente` no se afirma como cumplido. La revisión documental Fase 8.2 no vuelve a ejecutar verificaciones.
 
 | ID | Requisito | Prueba o evidencia de aceptación | Estado |
-|---|---|---|---|---|
+|---|---|---|---|
 | R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | Serving champion real versión 1, dos familias y persistencia; `evidencias/prediccion_champion.json` y pruebas aisladas | Verificado |
 | R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | `tests/test_normalizacion.py`: ejemplos de entrada y casos adicionales | Verificado con pytest aislado |
 | R03 | Las respuestas explican correcciones/advertencias | Pruebas de normalización y HTTP verifican `calidad.estado` y detalle | Verificado |
