@@ -1,0 +1,231 @@
+{
+  "proyecto": "novamercado-e2e-2961c0bca5",
+  "puertos": {
+    "api": 53637,
+    "mlflow": 53638,
+    "airflow": 53639
+  },
+  "principal_antes": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "etapas": {
+    "bootstrap": {
+      "segundos": 65.16024545801338,
+      "limite": 600,
+      "registry_inicial": {
+        "run_ids": [],
+        "modelos": []
+      },
+      "modelo": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    },
+    "operacion": {
+      "observaciones": [
+        1,
+        0
+      ],
+      "prediccion": {
+        "version_modelo": "1",
+        "predicciones": [
+          {
+            "familia_id": "abarrotes",
+            "venta_esperada": 555.9748279210746,
+            "cantidad_sugerida": 710
+          }
+        ],
+        "tienda_id": 1,
+        "fecha": "2026-03-02",
+        "calidad": {
+          "estado": "advertencia",
+          "observaciones": [
+            {
+              "campo": "familias",
+              "accion": "advertir",
+              "detalle": "Solicitud parcial: solo se pronosticarán las familias recibidas; faltan bebe, bebidas, carnes, cuidado_personal, frutas_verduras, lacteos, licores, limpieza, mascotas, panaderia, snacks. No se imputan promociones."
+            }
+          ]
+        }
+      }
+    },
+    "reentrenamiento": {
+      "id": "novamercado_api__a699d8d126084b8cb941e598c67976ce",
+      "segundos": 28.70698849996552,
+      "limite": 600,
+      "resultado": {
+        "estado": "exitoso",
+        "promovido": false,
+        "version": "1",
+        "motivo": "Costo sin mejora mínima del 1% (incluye empate o retroceso)"
+      }
+    },
+    "actualizacion_servida": {
+      "segundos": 0.014551500033121556,
+      "promovido": false,
+      "version": "1"
+    },
+    "persistencia": {
+      "registry_identico": true,
+      "reenvio": 0
+    }
+  },
+  "estado": "verificado",
+  "etapa_actual": "Reinicio y persistencia sin duplicar bootstrap",
+  "principal_despues": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_intacto": true,
+  "artefactos_dag": {
+    "candidato": {
+      "run_id": "59dabe922d06444386ecd003ba004635",
+      "experimento": "NovaMercado",
+      "model_uri": "models:/m-c0b467b623d44843b08b978106826ccf",
+      "version": "2"
+    },
+    "decision": {
+      "estado": "exitoso",
+      "promovido": false,
+      "version": "1",
+      "motivo": "Costo sin mejora mínima del 1% (incluye empate o retroceso)",
+      "evaluacion_run_id": "fe8ad3f7a6c34356b162938309f2a62a"
+    },
+    "validacion_inicio": "2026-01-05",
+    "validacion_fin": "2026-03-01",
+    "metricas": {
+      "registros": 6601,
+      "mae": 38.329791886465046,
+      "rmse": 70.06704450138695,
+      "wape": 0.18676756654958515,
+      "costo_total": 194275.6,
+      "costo_medio": 29.4312376912589,
+      "costo_sugerido_media": 229829.7
+    },
+    "baseline": {
+      "registros": 6601,
+      "mae": 53.3714588698682,
+      "rmse": 95.18425713327935,
+      "wape": 0.26006030833281046,
+      "costo_total": 235497.8,
+      "costo_medio": 35.676079381911826,
+      "costo_sugerido_media": 287027.5
+    }
+  },
+  "aislado_runs_reentrenamiento": {
+    "run_ids": [
+      "59dabe922d06444386ecd003ba004635",
+      "fe8ad3f7a6c34356b162938309f2a62a"
+    ],
+    "nota": "IDs del reentrenamiento; bootstrap registrado en logs del entorno aislado."
+  },
+  "principal_despues_pytest": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "pytest": {
+    "passed": 281,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "segundos": 59.501
+  }
+}

@@ -16,3 +16,5 @@ logs
 evidencias
 *.db
 *.sqlite*
+
+.e2e/

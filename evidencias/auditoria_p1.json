@@ -1,0 +1,103 @@
+{
+  "fecha": "2026-11-15",
+  "resultado_pytest": {
+    "passed": 177,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "deselected": 2,
+    "seconds": 7.754,
+    "grupos": {
+      "test_normalizacion": 49,
+      "test_endpoints": 43,
+      "test_persistencia": 12,
+      "test_baseline": 22,
+      "test_histgradient": 12,
+      "test_tracking": 7,
+      "test_promocion": 30,
+      "test_promocion_mlflow": 2
+    },
+    "uri_mlflow_heredado": "http://127.0.0.1:59999 (inaccesible; pytest stores temporales)",
+    "postgres": "servidor temporal exclusivo tmpfs, detenido al concluir"
+  },
+  "R02_R05": {
+    "pruebas": "tests/test_normalizacion.py + tests/test_endpoints.py",
+    "resultado": "Ejemplos GES, casos adicionales, reparación/advertencia/rechazo, calidad.estado/detalle, esquemas, HTTP 422; normalización fuera de adaptadores HTTP."
+  },
+  "R07": {
+    "proyecto": "Compose aislado novamercado-e2e-2961c0bca5",
+    "conteos_post_reinicio": {
+      "solicitudes": 4,
+      "predicciones": 1,
+      "acciones_calidad": 1,
+      "observaciones": 1,
+      "historial_observaciones": 1
+    },
+    "versiones_predicciones": [
+      "1"
+    ],
+    "prueba_complementaria": "test_prediccion_champion_real_persistida_y_continua_sin_mlflow comprueba dos predicciones/versiones almacenadas."
+  },
+  "R10_R11": {
+    "reporte": "evidencias/comparacion_histgradient.json",
+    "periodo": [
+      "2026-01-04",
+      "2026-02-28"
+    ],
+    "casos": 6720,
+    "baseline": {
+      "mae": 53.64735863095238,
+      "rmse": 95.58959978303888,
+      "wape": 0.26171856000081306,
+      "costo_total": 239897.9
+    },
+    "hgb": {
+      "mae": 38.53099992647845,
+      "rmse": 69.67583157254529,
+      "wape": 0.1879734263436998,
+      "costo_total": 197537.7
+    },
+    "reduccion_costo_pct": 17.66,
+    "formula": "cfaltante*max(real-sugerido,0)+csobrante*max(sugerido-real,0), costos de costos.csv",
+    "pruebas": [
+      "test_costos_asimetricos_cambian_sugerido",
+      "test_cuantil_residual_depende_de_costos",
+      "test_costos_invalidos"
+    ]
+  },
+  "R12": {
+    "consulta": "MLflow principal solo lectura, igual a snapshot anterior",
+    "experimento": "NovaMercado",
+    "runs": 14,
+    "modelo": "novamercado-histgradientboosting",
+    "champion": "1",
+    "versiones": [
+      [
+        "1",
+        "644650a470024476a8926b64837c5984"
+      ],
+      [
+        "2",
+        "939ed42d45744c1490ce08e7772d3336"
+      ]
+    ],
+    "versiones_ready_y_runs_finished": true,
+    "artefactos": [
+      "codigo",
+      "configuracion",
+      "evaluacion",
+      "linaje"
+    ]
+  },
+  "R17": {
+    "pruebas": "tests/test_promocion.py: test_empate_retroceso_y_mejora_insuficiente_conservan; test_errores_conservan_o_revierten_champion; tests/test_promocion_mlflow.py",
+    "Compose": "evidencias/fase7_integral.json: candidato descartado, versión servida 1 conservada"
+  },
+  "entorno_principal": {
+    "identico_a_evidencia_anterior": true,
+    "runs": 14,
+    "champion": "1",
+    "alterado": false,
+    "volumenes_borrados": false
+  }
+}

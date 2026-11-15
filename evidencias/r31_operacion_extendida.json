@@ -1,0 +1,618 @@
+{
+  "proyecto": "novamercado-e2e-821390f461",
+  "puertos": {
+    "api": 58052,
+    "mlflow": 58053,
+    "airflow": 58054
+  },
+  "principal_antes": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "etapas": {
+    "bootstrap": {
+      "segundos": 66.7094992499915,
+      "limite": 600,
+      "registry_inicial": {
+        "run_ids": [],
+        "modelos": []
+      },
+      "modelo": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    },
+    "operacion": {
+      "observaciones": [
+        1,
+        0
+      ],
+      "prediccion": {
+        "version_modelo": "3",
+        "predicciones": [
+          {
+            "familia_id": "pan",
+            "venta_esperada": 210.9264122648983,
+            "cantidad_sugerida": 411
+          }
+        ],
+        "tienda_id": 1,
+        "fecha": "2025-07-14",
+        "calidad": {
+          "estado": "ok",
+          "observaciones": []
+        }
+      }
+    },
+    "reentrenamiento": {
+      "id": "novamercado_api__2fee93ae655f43e8a95858a8a4a5f839",
+      "segundos": 10.303925583022647,
+      "limite": 600,
+      "resultado": {
+        "estado": "exitoso",
+        "promovido": true,
+        "version": "5",
+        "motivo": "Costo 717.00 vs 1110.00; cumple mejora y controles"
+      }
+    },
+    "actualizacion_servida": {
+      "segundos_desde_fin_dag": 21.640833,
+      "segundos_desde_consulta_terminal": 20.42978279205272,
+      "limite": 120,
+      "fin_dag_utc": "2026-11-15T06:41:14.986432+00:00",
+      "observado_utc": "2026-11-15T06:41:36.829158+00:00",
+      "promovido": true,
+      "version_anterior": "3",
+      "version": "5",
+      "api_sin_reinicio": true,
+      "prediccion": {
+        "version_modelo": "5",
+        "predicciones": [
+          {
+            "familia_id": "pan",
+            "venta_esperada": 389.2980308851761,
+            "cantidad_sugerida": 397
+          }
+        ],
+        "tienda_id": 1,
+        "fecha": "2025-07-14",
+        "calidad": {
+          "estado": "ok",
+          "observaciones": []
+        }
+      }
+    },
+    "mlflow_resiliencia": {
+      "degradado_segundos": 1.1316377080511302,
+      "limite_caida": 60,
+      "ok_segundos_desde_start": 30.341005958034657,
+      "limite_retorno": 120,
+      "predicciones_durante_caida": [
+        {
+          "segundos_desde_caida": 1.1642267500283197,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 3.2392242080532014,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 5.3259451250196435,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 7.413301916036289,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 9.508451875008177,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 11.595898666011635,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 13.679802750004455,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 15.767794125014916,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 17.864155875053257,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 19.958813083008863,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 22.0362827500212,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 24.11165095801698,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 26.186626041017007,
+          "version": "5"
+        },
+        {
+          "segundos_desde_caida": 28.28424420801457,
+          "version": "5"
+        }
+      ],
+      "modelo_y_prediccion_conservados": true,
+      "api_sin_reinicio": true
+    },
+    "persistencia": {
+      "registry_identico": true,
+      "reenvio": 0
+    }
+  },
+  "estado": "verificado",
+  "etapa_actual": "Reinicio y persistencia sin duplicar bootstrap",
+  "escenario": {
+    "sintetico": true,
+    "dias": 140,
+    "orden": "predicción D, observación D antes de predicción D+1",
+    "cambio_demanda": {
+      "indice": "tras 420 días históricos",
+      "ventas": "120 → 320 + calendario/promoción"
+    },
+    "errores_no_catalogados": [
+      "familia desconocida",
+      "venta fraccionaria",
+      "duplicado contradictorio"
+    ],
+    "periodicidad_reentrenamiento_dias": 35,
+    "politica_promocion_modificada": false,
+    "eventos": {
+      "errores_422": [
+        {
+          "caso": "familia_no_catalogada",
+          "ruta": "/v1/prediccion",
+          "fecha": "2025-03-09",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-03-09",
+            "familias": [
+              {
+                "familia_id": "familia_nueva_xyz",
+                "en_promocion": 0
+              }
+            ]
+          },
+          "response": {
+            "detail": "familias[0].familia_id: familia desconocida"
+          }
+        },
+        {
+          "caso": "decimal_fraccionario",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-03-09",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-03-09",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12.5
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[0].ventas: se requiere un entero no negativo; formato ambiguo o inválido"
+          }
+        },
+        {
+          "caso": "duplicado_contradictorio",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-03-09",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-03-09",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12
+              },
+              {
+                "familia_id": "pan",
+                "ventas": 13
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[1]: familia duplicada con valores contradictorios"
+          }
+        },
+        {
+          "caso": "familia_no_catalogada",
+          "ruta": "/v1/prediccion",
+          "fecha": "2025-04-13",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-04-13",
+            "familias": [
+              {
+                "familia_id": "familia_nueva_xyz",
+                "en_promocion": 0
+              }
+            ]
+          },
+          "response": {
+            "detail": "familias[0].familia_id: familia desconocida"
+          }
+        },
+        {
+          "caso": "decimal_fraccionario",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-04-13",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-04-13",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12.5
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[0].ventas: se requiere un entero no negativo; formato ambiguo o inválido"
+          }
+        },
+        {
+          "caso": "duplicado_contradictorio",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-04-13",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-04-13",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12
+              },
+              {
+                "familia_id": "pan",
+                "ventas": 13
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[1]: familia duplicada con valores contradictorios"
+          }
+        },
+        {
+          "caso": "familia_no_catalogada",
+          "ruta": "/v1/prediccion",
+          "fecha": "2025-05-18",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-05-18",
+            "familias": [
+              {
+                "familia_id": "familia_nueva_xyz",
+                "en_promocion": 0
+              }
+            ]
+          },
+          "response": {
+            "detail": "familias[0].familia_id: familia desconocida"
+          }
+        },
+        {
+          "caso": "decimal_fraccionario",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-05-18",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-05-18",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12.5
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[0].ventas: se requiere un entero no negativo; formato ambiguo o inválido"
+          }
+        },
+        {
+          "caso": "duplicado_contradictorio",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-05-18",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-05-18",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12
+              },
+              {
+                "familia_id": "pan",
+                "ventas": 13
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[1]: familia duplicada con valores contradictorios"
+          }
+        },
+        {
+          "caso": "familia_no_catalogada",
+          "ruta": "/v1/prediccion",
+          "fecha": "2025-06-22",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-06-22",
+            "familias": [
+              {
+                "familia_id": "familia_nueva_xyz",
+                "en_promocion": 0
+              }
+            ]
+          },
+          "response": {
+            "detail": "familias[0].familia_id: familia desconocida"
+          }
+        },
+        {
+          "caso": "decimal_fraccionario",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-06-22",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-06-22",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12.5
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[0].ventas: se requiere un entero no negativo; formato ambiguo o inválido"
+          }
+        },
+        {
+          "caso": "duplicado_contradictorio",
+          "ruta": "/v1/observaciones",
+          "fecha": "2025-06-22",
+          "status": 422,
+          "request": {
+            "tienda_id": 1,
+            "fecha": "2025-06-22",
+            "ventas": [
+              {
+                "familia_id": "pan",
+                "ventas": 12
+              },
+              {
+                "familia_id": "pan",
+                "ventas": 13
+              }
+            ]
+          },
+          "response": {
+            "detail": "ventas[1]: familia duplicada con valores contradictorios"
+          }
+        }
+      ],
+      "reentrenamientos_periodicos": [
+        {
+          "dia_simulado": 35,
+          "id": "novamercado_api__9d8062b2b8b244c5b447c67c4ded61e4",
+          "segundos": 12.422325833002105,
+          "resultado": {
+            "estado": "exitoso",
+            "promovido": false,
+            "version": "1",
+            "motivo": "Costo sin mejora mínima del 1% (incluye empate o retroceso)"
+          },
+          "segundos_hasta_version_servida": 0.010223457997199148,
+          "limite_refresco": 120,
+          "modelo_servido": {
+            "nombre": "novamercado-histgradientboosting",
+            "alias": "champion",
+            "version": "1"
+          }
+        },
+        {
+          "dia_simulado": 70,
+          "id": "novamercado_api__4a5d03aecdd449eb85a48632322bfd79",
+          "segundos": 14.319668999989517,
+          "resultado": {
+            "estado": "exitoso",
+            "promovido": true,
+            "version": "3",
+            "motivo": "Costo 1108.00 vs 31011.00; cumple mejora y controles"
+          },
+          "segundos_hasta_version_servida": 4.041035541973542,
+          "limite_refresco": 120,
+          "modelo_servido": {
+            "nombre": "novamercado-histgradientboosting",
+            "alias": "champion",
+            "version": "3"
+          },
+          "reinicio": {
+            "servicios": [
+              "product-db",
+              "api"
+            ],
+            "segundos_hasta_health_ok": 3.0348517080419697,
+            "modelo_despues": {
+              "nombre": "novamercado-histgradientboosting",
+              "alias": "champion",
+              "version": "3"
+            }
+          }
+        },
+        {
+          "dia_simulado": 105,
+          "id": "novamercado_api__47180fd1e039493bbc577d4d51fd35e5",
+          "segundos": 10.304113458958454,
+          "resultado": {
+            "estado": "exitoso",
+            "promovido": false,
+            "version": "3",
+            "motivo": "Costo sin mejora mínima del 1% (incluye empate o retroceso)"
+          },
+          "segundos_hasta_version_servida": 0.009756541985552758,
+          "limite_refresco": 120,
+          "modelo_servido": {
+            "nombre": "novamercado-histgradientboosting",
+            "alias": "champion",
+            "version": "3"
+          },
+          "reinicio": {
+            "servicios": [
+              "mlflow",
+              "api"
+            ],
+            "segundos_hasta_health_ok": 33.31219520798186,
+            "modelo_despues": {
+              "nombre": "novamercado-histgradientboosting",
+              "alias": "champion",
+              "version": "3"
+            }
+          }
+        }
+      ],
+      "dias_simulados": 140,
+      "observaciones_aceptadas": 140
+    }
+  },
+  "aislado_final": {
+    "run_ids": [
+      "02d64a65f77d4aa9be78ca20477274c5",
+      "18b9a86aa4884c869fe15ee2e19b80a0",
+      "2bf22ce78f1148d78f5902f2b1ac2732",
+      "334d60a5b7c14ab2bff7d3eb5e9973e9",
+      "3592dfad43f04162b0e273b8ab6c0407",
+      "6bcc4bc56ab546d5a36bd1810f4abce4",
+      "7cc6393eca264a64b1eb478888548de2",
+      "7f9d448282e2425abe63cbdb086783a5",
+      "98d07c7849d3483a8844ad8f72f3e4e8",
+      "d6a0e74452de4b2492f4c7c56dc4503b"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "5"
+        },
+        "versiones": [
+          [
+            "1",
+            "18b9a86aa4884c869fe15ee2e19b80a0"
+          ],
+          [
+            "2",
+            "d6a0e74452de4b2492f4c7c56dc4503b"
+          ],
+          [
+            "3",
+            "02d64a65f77d4aa9be78ca20477274c5"
+          ],
+          [
+            "4",
+            "98d07c7849d3483a8844ad8f72f3e4e8"
+          ],
+          [
+            "5",
+            "334d60a5b7c14ab2bff7d3eb5e9973e9"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_despues": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_intacto": true
+}

@@ -1,0 +1,334 @@
+{
+  "proyecto": "novamercado-e2e-6cd6e05908",
+  "puertos": {
+    "api": 55117,
+    "mlflow": 55118,
+    "airflow": 55119
+  },
+  "principal_antes": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "etapas": {
+    "bootstrap": {
+      "segundos": 67.55594037496485,
+      "limite": 600,
+      "registry_inicial": {
+        "run_ids": [],
+        "modelos": []
+      },
+      "modelo": {
+        "nombre": "novamercado-histgradientboosting",
+        "alias": "champion",
+        "version": "1"
+      }
+    },
+    "operacion": {
+      "observaciones": [
+        1,
+        0
+      ],
+      "prediccion": {
+        "version_modelo": "1",
+        "predicciones": [
+          {
+            "familia_id": "pan",
+            "venta_esperada": 211.75349737649157,
+            "cantidad_sugerida": 212
+          }
+        ],
+        "tienda_id": 1,
+        "fecha": "2025-07-14",
+        "calidad": {
+          "estado": "ok",
+          "observaciones": []
+        }
+      }
+    },
+    "reentrenamiento": {
+      "id": "novamercado_api__56061bc2bb8942b7a4b534d2c0916231",
+      "segundos": 12.359632792009506,
+      "limite": 600,
+      "resultado": {
+        "estado": "exitoso",
+        "promovido": true,
+        "version": "2",
+        "motivo": "Costo 717.00 vs 30897.00; cumple mejora y controles"
+      }
+    },
+    "actualizacion_servida": {
+      "segundos_desde_fin_dag": 13.243808,
+      "segundos_desde_consulta_terminal": 12.25304858299205,
+      "limite": 120,
+      "promovido": true,
+      "version_anterior": "1",
+      "version": "2",
+      "api_sin_reinicio": true,
+      "prediccion": {
+        "version_modelo": "2",
+        "predicciones": [
+          {
+            "familia_id": "pan",
+            "venta_esperada": 389.2980308851761,
+            "cantidad_sugerida": 397
+          }
+        ],
+        "tienda_id": 1,
+        "fecha": "2025-07-14",
+        "calidad": {
+          "estado": "ok",
+          "observaciones": []
+        }
+      }
+    },
+    "mlflow_resiliencia": {
+      "degradado_segundos": 1.3823284159880131,
+      "limite_caida": 60,
+      "ok_segundos_desde_start": 29.02927537501091,
+      "limite_retorno": 120,
+      "predicciones_durante_caida": [
+        {
+          "segundos_desde_caida": 1.4081331659690477,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 3.4853102499619126,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 5.5571618329850025,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 7.639551582979038,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 9.71105499996338,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 11.771702957979869,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 13.832738708006218,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 15.897995083010755,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 17.967735624988563,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 20.049527166003827,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 22.1313967499882,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 24.212063290993683,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 26.297251083015,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 28.376017957984004,
+          "version": "2"
+        },
+        {
+          "segundos_desde_caida": 30.46126174996607,
+          "version": "2"
+        }
+      ],
+      "modelo_y_prediccion_conservados": true,
+      "api_sin_reinicio": true
+    },
+    "persistencia": {
+      "registry_identico": true,
+      "reenvio": 0
+    }
+  },
+  "estado": "verificado",
+  "etapa_actual": "Reinicio y persistencia sin duplicar bootstrap",
+  "escenario": {
+    "sintetico": true,
+    "dias": 140,
+    "orden": "predicción D, observación D antes de predicción D+1",
+    "politica_promocion_modificada": false
+  },
+  "aislado_final": {
+    "run_ids": [
+      "05817bb185f84ffe9bd1efac7f390141",
+      "35791918d1f949ecb418e2655839068c",
+      "6dd2a59af080488280e799b39f410e67",
+      "b44caa53ea9b4264880f30efbc540928"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "2"
+        },
+        "versiones": [
+          [
+            "1",
+            "6dd2a59af080488280e799b39f410e67"
+          ],
+          [
+            "2",
+            "b44caa53ea9b4264880f30efbc540928"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_despues": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "principal_intacto": true,
+  "auditoria_promocion": {
+    "run_id": "05817bb185f84ffe9bd1efac7f390141",
+    "candidato": {
+      "run_id": "b44caa53ea9b4264880f30efbc540928",
+      "experimento": "NovaMercado",
+      "model_uri": "models:/m-d23ccf9649b942d1bdc54147cc194b9c",
+      "version": "2"
+    },
+    "metricas_candidato": {
+      "registros": 56,
+      "mae": 7.620489445884703,
+      "rmse": 9.916051052258132,
+      "wape": 0.020140044785952303,
+      "costo_total": 717.0,
+      "costo_medio": 12.803571428571429,
+      "costo_sugerido_media": 946.0
+    },
+    "metricas_champion_reevaluado": {
+      "registros": 56,
+      "mae": 183.85930834143983,
+      "rmse": 184.4758810256967,
+      "wape": 0.4859182248865275,
+      "costo_total": 30897.0,
+      "costo_medio": 551.7321428571429,
+      "costo_sugerido_media": 30897.0
+    },
+    "comparacion_csv": "evidencias/fase7_promocion_comparacion.csv",
+    "decision_md": "evidencias/fase7_promocion_decision.md"
+  },
+  "principal_despues_pytest": {
+    "run_ids": [
+      "0277a0436d0e415588d531da822d9e4c",
+      "20342ffebd1c469da0203b7d375cd0d5",
+      "2e71554db50542b5acb79eea931de2b5",
+      "376d51b026784af2bca30ac18dcfac28",
+      "3dd2551d556149c9b72ecfcc8786ad57",
+      "4e74e74ff7da4056a2d56011a1186e19",
+      "5b8339f150ba48fabeb927a9eb457981",
+      "644650a470024476a8926b64837c5984",
+      "6b2684c69fa845b789e4ec422713c2fd",
+      "79ba6e1bda5d47628fb96ac19dc0333b",
+      "8bdcca95d3dd4985965c93b8fee5e8e1",
+      "939ed42d45744c1490ce08e7772d3336",
+      "a65d9a88bf3d4d1383ac665ff66355a0",
+      "b2dfbd16fed44a308ac7ae9716356e73"
+    ],
+    "modelos": [
+      {
+        "nombre": "novamercado-histgradientboosting",
+        "aliases": {
+          "champion": "1"
+        },
+        "versiones": [
+          [
+            "1",
+            "644650a470024476a8926b64837c5984"
+          ],
+          [
+            "2",
+            "939ed42d45744c1490ce08e7772d3336"
+          ]
+        ]
+      }
+    ]
+  },
+  "pytest": {
+    "passed": 284,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "segundos": 58.699
+  }
+}

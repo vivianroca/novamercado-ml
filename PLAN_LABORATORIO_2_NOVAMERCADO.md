@@ -3,7 +3,7 @@
 **Proyecto:** Servicio de ML en Producción — Pronóstico Diario de Ventas para NovaMercado  
 **Curso:** Product Development, Maestría en Data Science, cuarto ciclo (octubre de 2026)  
 **Documento fuente:** `Laboratorio_2_PD_26_c(1).pdf` (7 páginas)  
-**Estado:** Planificación. **Aún no se han descargado los archivos de datos publicados en GES.**  
+**Estado actual:** implementación y aceptación operativa en progreso; revisar la matriz vigente más abajo. Los archivos suministrados están en `data/` y se excluyen de Git. La revisión documental Fase 8.3 no vuelve a ejecutar pruebas ni contenedores.
 **Herramienta de desarrollo:** Codex.  
 **Propósito de este archivo:** respaldar las decisiones y requisitos antes de implementar, para poder reanudar el proyecto en futuras sesiones y auditar el resultado.  
 
@@ -27,19 +27,19 @@ Construir un producto ejecutable con FastAPI, PostgreSQL, MLflow, Airflow y Dock
 - **[IMPLEMENTACIÓN] Necesario según nuestra arquitectura:** elección técnica para cumplir lo anterior, no un nombre de archivo exigido por el docente.
 - **[OPCIONAL] Mejora:** solo si aporta valor y no compromete plazos.
 
-## 2. Insumos pendientes del GES
+## 2. Insumos del GES
 
-El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. **Ninguno se ha recibido todavía en este proyecto**:
+El PDF (p. 2) enumera estos archivos. Los insumos recibidos y contrastados están en `data/`; su contenido queda excluido de Git. En la entrega, el docente debe colocar allí los archivos publicados:
 
 | Insumo | Uso previsto | Estado |
 |---|---|---|
-| `tiendas.csv` | Catálogo de tiendas, formatos y ciudades | Pendiente de descargar |
-| `familias.csv` | Catálogo de familias y normalización de IDs | Pendiente de descargar |
-| `historico_ventas.csv` | Dos años de ventas diarias y `en_promocion` por tienda/familia | Pendiente de descargar |
-| `feriados.csv` | Feriados nacionales/locales, fechas comerciales y de pago, incluidos días futuros | Pendiente de descargar |
-| `costos.csv` | Costos relativos de faltantes/sobrantes por familia | Pendiente de descargar |
-| `catalogo_errores.md` | Ejemplos y tipos de problemas observados; no exhaustivo | Pendiente de descargar |
-| `ejemplos/` | Solicitudes válidas y defectuosas | Pendiente de descargar |
+| `tiendas.csv` | Catálogo de tiendas, formatos y ciudades | Disponible localmente; ignorado por Git |
+| `familias.csv` | Catálogo de familias y normalización de IDs | Disponible localmente; ignorado por Git |
+| `historico_ventas.csv` | Dos años de ventas diarias y `en_promocion` por tienda/familia | Disponible localmente; ignorado por Git |
+| `feriados.csv` | Feriados nacionales/locales, fechas comerciales y de pago, incluidos días futuros | Disponible localmente; ignorado por Git |
+| `costos.csv` | Costos relativos de faltantes/sobrantes por familia | Disponible localmente; ignorado por Git |
+| `catalogo_errores.md` | Ejemplos y tipos de problemas observados; no exhaustivo | Disponible localmente; ignorado por Git |
+| `ejemplos/` | Solicitudes válidas y defectuosas | Disponible localmente; ignorado por Git |
 
 **Reglas de integración de insumos [PDF, p. 2]:**
 - En `feriados.csv`, `ambito` vale `nacional` o el nombre de ciudad que coincide con `ciudad` en `tiendas.csv`.
@@ -48,45 +48,45 @@ El PDF (p. 2) señala que el equipo docente publicará los siguientes archivos. 
 - No usar el reloj real para invalidar fechas: el servicio opera con **fechas simuladas**; la evaluación es posterior al histórico y está cubierta por el calendario de feriados.
 - El docente colocará los insumos en la carpeta señalada en el README al evaluar. El primer arranque debe funcionar a partir de esos archivos.
 
-**Pendiente antes de codificar reglas concretas de calidad y modelo:** inspeccionar cabeceras, tipos, rangos, nulos, duplicados, claves y ejemplos reales. No inventar columnas ni contenido de los CSV.
+La inspección de cabeceras, tipos, rangos, nulos, duplicados, claves y ejemplos se documentó antes de implementar reglas. Repetirla si el docente publica una versión distinta.
 
 ## 3. Matriz de requisitos y pruebas de aceptación
 
-**Estado inicial de todos los criterios:** PENDIENTE. Registrar en esta tabla el archivo, prueba y evidencia real a medida que se implemente.
+**Estado actualizado al 2026-11-15.** `Verificado` requiere prueba/evidencia indicada. `Parcial` significa que existe implementación o un escenario limitado, pero falta la aceptación completa. `Pendiente` no se afirma como cumplido. La revisión documental Fase 8.2 no vuelve a ejecutar verificaciones.
 
 | ID | Requisito [PDF] | Página | Prueba o evidencia exigida para cerrar | Estado |
 |---|---|---|---|---|
 | R01 | Pronóstico por tienda, familia y fecha, con venta esperada y sugerido | 1, 6 | Serving champion real versión 1, dos familias y persistencia; `evidencias/prediccion_champion.json` y pruebas aisladas | Verificado |
-| R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | 1–2 | Pruebas parametrizadas con ejemplos y nuevos casos | Pendiente |
-| R03 | Las respuestas explican correcciones/advertencias | 2, 6 | Verificar `calidad.estado` y observaciones | Pendiente |
-| R04 | Contrato exacto de API con Pydantic y limpieza fuera de endpoints | 2, 6–7 | Pruebas de esquema, estructura de código y 422 | Pendiente |
-| R05 | pytest del contrato independientes de un MLflow activo | 2 | Ejecutar suite con MLflow apagado/mockeado | Pendiente |
-| R06 | PostgreSQL de producto distinto al de Airflow, en Docker | 3 | Comprobar separación y conexiones con Compose | Pendiente |
-| R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | 1, 3 | Consultar DB tras solicitudes y reinicio | Pendiente |
+| R02 | Políticas coherentes para reparar, advertir o rechazar defectos, también no catalogados | 1–2 | `tests/test_normalizacion.py`: ejemplos GES y casos adicionales | Verificado con pytest aislado |
+| R03 | Las respuestas explican correcciones/advertencias | 2, 6 | Pruebas de normalización y HTTP verifican `calidad.estado` y detalle | Verificado |
+| R04 | Contrato exacto de API con Pydantic y limpieza fuera de endpoints | 2, 6–7 | Esquemas Pydantic, calidad separada y pruebas HTTP 422 | Verificado por pruebas/código |
+| R05 | pytest del contrato independientes de un MLflow activo | 2 | 177 pruebas focalizadas con URI MLflow heredado inalcanzable y stores temporales | Verificado |
+| R06 | PostgreSQL de producto distinto al de Airflow, en Docker | 3 | Compose aislado: servicios product-db y airflow-db independientes; integraciones DB | Verificado en Compose aislado |
+| R07 | Persistir solicitudes, predicciones, correcciones, observaciones y versión por predicción | 1, 3 | SQL tras reinicio de PostgreSQL Compose aislado; `evidencias/auditoria_p1.json` | Verificado en Compose aislado |
 | R08 | Observaciones idempotentes | 3, 7 | `tests/test_persistencia.py`: HTTP 200, reenvío 0, nuevos + modificados, concurrencia sin duplicados; evidencia en `evidencias/fase_3_1_postgresql.md` | Verificado |
 | R09 | Baseline y al menos un modelo ML que mejore al baseline | 3 | `evidencias/comparacion_histgradient.json`: mismo periodo/casos, HGB mejora MAE/RMSE/WAPE/costo; `tests/test_histgradient.py` | Verificado offline |
-| R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | 2–3 | Comparativa calculada con fórmula del PDF | Pendiente |
-| R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Casos con distintas relaciones de costos y explicación | Pendiente |
-| R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | 3 | Capturas/consultas de runs, artefactos, versiones y alias | Pendiente |
+| R10 | Métricas técnicas y costos de negocio basados en `costos.csv` | 2–3 | MAE/RMSE/WAPE/costo mismo periodo/casos, `comparacion_histgradient.json` | Verificado offline |
+| R11 | Cantidad sugerida coherente con costo por familia | 2–3 | Tests de costos asimétricos/cuantiles y evaluación por familia | Verificado por pruebas/evaluación |
+| R12 | Experimentos, modelos, linaje y alias vigente en MLflow Registry | 3 | Consulta Registry/run/artifacts solo lectura, `evidencias/auditoria_p1.json` | Verificado |
 | R13 | Criterio automatizado y explícito de promoción | 3 | `ml/promocion.py`, `tests/test_promocion.py`, `tests/test_promocion_mlflow.py`: mejora, empate, retroceso y error; decisiones auditadas | Verificado |
-| R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | DAG SDK 3.3.2 ejecutado con histórico y 66 observaciones PostgreSQL, MLflow aislado; `evidencias/airflow_fase5.json` | Verificado con SDK; stack pendiente |
-| R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | POST 202/503, GET estados y GET 404 | Verificado con Airflow simulado |
-| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Cambio de fuente simulado y HTTP con intervalo real de 30 s; sin ejecutar DAG | Verificado en API aislada; stack pendiente |
-| R17 | Fallo o candidato descartado no afecta modelo vigente | 3 | Simular fallo y no promoción; continuidad de predicciones | Pendiente |
-| R18 | Todo se levanta con `docker compose up` y servicio llamado `mlflow` | 3 | `docker compose config`, `up`, `ps`, curl | Pendiente |
-| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | 3 | product-init y tests/test_bootstrap.py | Implementado y simulado; entrenamiento inicial real pendiente |
+| R14 | Airflow reentrena usando histórico y observaciones persistidas | 3 | POST/GET y DAG real con PostgreSQL/MLflow aislados; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
+| R15 | Reentrenamiento invocable por API y estado consultable | 3, 7 | Contrato simulado y POST 202/GET terminal reales en Compose aislado | Verificado |
+| R16 | Modelo promovido se usa en API sin reinicio ≤2 min tras el DAG | 3 | Promoción real 1→2, predicción con versión 2 en 13,24 s desde fin DAG, mismo contenedor | Verificado en Compose aislado |
+| R17 | Fallo o candidato descartado no afecta modelo vigente | 3 | Pruebas de fallos/promoción y Compose aislado conserva versión 1 tras descarte | Verificado |
+| R18 | Todo se levanta con `docker compose up` y servicio llamado `mlflow` | 3 | Compose aislado: stack completo, API health ok; `evidencias/fase7_integral.json` | Verificado en Compose aislado |
+| R19 | Primer arranque: carga datos y entrena/registra modelo automáticamente | 3 | Registry vacío y bootstrap real en Compose aislado; evidencias/fase7_integral.json | Verificado |
 | R20 | Arranque posterior: conservar estado, no repetir bootstrap | 3 | Reinicio real API/DB/MLflow; 14 runs y champion 1; checkpoint y concurrencia probados | Verificado con champion existente |
-| R21 | Versiones fijas de imágenes; ni credenciales ni datos en imagen/repositorio; `.env.example` | 3 | Revisar Compose, Dockerfiles y `git ls-files` | Pendiente |
-| R22 | API sigue prediciendo con modelo cargado si MLflow cae | 3 | Interrumpir MLflow; POST predicción debe funcionar | Pendiente |
-| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | 3 | Sondas inmediatas y caída/recuperación simuladas en tests/test_estado.py | Verificado con dependencias simuladas |
-| R24 | Salud `ok` ≤10 min del arranque (sin contar build) | 4 | Arranque limpio cronometrado | Pendiente |
-| R25 | Reentrenamiento finaliza ≤10 min | 4 | DAG real cronometrado | Pendiente |
+| R21 | Versiones fijas de imágenes; ni credenciales ni datos en imagen/repositorio; `.env.example` | 3 | Revisión estática Compose/Dockerfiles, ignore y archivos versionados | Verificado por revisión estática |
+| R22 | API sigue prediciendo con modelo cargado si MLflow cae | 3 | stop MLflow aislado, 15 predicciones idénticas versión 2 y refresco fallido observado | Verificado en Compose aislado |
+| R23 | `/health` degradado en <1 min de caída, ok en <2 min de retorno | 3 | stop/start real MLflow: degradado 1,38 s, ok 29,03 s; evidencia Fase 7 resiliencia | Verificado en Compose aislado |
+| R24 | Salud `ok` ≤10 min del arranque (sin contar build) | 4 | Registry vacío, volúmenes nuevos, health ok en 65,16 s; evidencia Fase 7 | Verificado en Compose aislado |
+| R25 | Reentrenamiento finaliza ≤10 min | 4 | POST/GET real con Airflow 3.3.2: 28,71 s, exitoso sin promoción | Verificado en Compose aislado |
 | R26 | README desde cero y ubicación de insumos | 4 | Ejecutar literalmente las instrucciones en entorno limpio | Pendiente |
-| R27 | Archivo de contexto para agente (`AGENTS.md`, `CLAUDE.md` o similar) | 4 | Archivo incluido y vigente | Pendiente |
-| R28 | `DECISIONES.md` documenta políticas, variables, sugerido, promoción, alternativas | 4 | Auditoría documental contra decisiones implementadas | Pendiente |
+| R27 | Archivo de contexto para agente (`AGENTS.md`, `CLAUDE.md` o similar) | 4 | `AGENTS.md` actualizado en Fase 8.2 | Verificado documentalmente |
+| R28 | `DECISIONES.md` documenta políticas, variables, sugerido, promoción, alternativas | 4 | Secciones de datos/calidad, variables y alternativas de `DECISIONES.md`; revisión documental Fase 8.3 | Verificado documentalmente |
 | R29 | Repo GitHub accesible y tag exacto `entrega-lab2` anterior al límite | 4–5 | Verificar remoto, `git show entrega-lab2` y fecha | Pendiente |
-| R30 | Evidencias MLflow, DAG y respuestas válidas/defectuosas | 5 | Evidencias incorporadas al repositorio | Pendiente |
-| R31 | Evaluación simula errores inéditos, drift, caídas y reinicios | 4 | Simulación integrada de varios días y fallos | Pendiente |
+| R30 | Evidencias MLflow, DAG y respuestas válidas/defectuosas | 5 | MLflow/DAG en evidencias de Fases 4–7; ejemplos 200/422 con request/response y procedencia en `evidencias/respuestas_api.json` | Verificado documentalmente; capturas HTTP contractuales usan dobles explícitos |
+| R31 | Evaluación simula errores inéditos, drift, caídas y reinicios | 4 | `evidencias/r31_operacion_extendida.json`: 140 días, 12 respuestas 422 no catalogadas, 4 reentrenamientos, reinicios, MLflow interrumpido/recuperado y principal intacto | Verificado en Compose aislado; datos sintéticos |
 
 ### 3.1 Contrato externo: implementar **exactamente** el anexo [PDF, pp. 6–7]
 
@@ -163,7 +163,9 @@ costo = c_faltante * max(real - sugerido, 0)
 - Los feriados locales se aplican según ciudad; validar datos de feriados futuros sin extrapolar indebidamente.
 - Validaciones temporales de entrenamiento y selección deben impedir fuga de información.
 
-## 4. Decisiones preliminares de arquitectura (no confundirse con requisitos literales)
+## 4. Decisiones iniciales de arquitectura — histórico, sustituido por la implementación final
+
+Esta sección conserva las hipótesis de planificación previas a inspeccionar los datos y desarrollar el sistema. **No describe el estado implementado ni es fuente de la matriz.** Para decisiones finales, variables y justificaciones vigentes, consultar `DECISIONES.md`; para cumplimiento, usar exclusivamente la sección 3 y las evidencias enlazadas.
 
 | Tema | Propuesta | Clasificación | Confirmar con datos |
 |---|---|---|---|
@@ -191,7 +193,9 @@ costo = c_faltante * max(real - sugerido, 0)
 - Evitar complejidad innecesaria (varios modelos por cada tienda/familia) antes de medir el beneficio.
 - La propuesta de cuantil `c_faltante / (c_faltante+c_sobrante)` es una **decisión de modelado condicionada a una distribución predictiva adecuada**, no una exigencia textual ni garantía automática de mejora.
 
-## 5. Archivos propuestos y distinción entre lo requerido y lo opcional
+## 5. Estructura inicialmente propuesta — histórico
+
+La estructura de esta sección fue una propuesta de arranque. Las rutas actuales pueden diferir; consultar `AGENTS.md` y el árbol del repositorio. Las obligaciones y el estado vigente están en la matriz de la sección 3.
 
 | Ruta propuesta | Propósito | Naturaleza |
 |---|---|---|
@@ -337,7 +341,9 @@ novamercado/
 - Si faltan datos, implementar únicamente componentes que no dependan de observar los archivos reales; **no simular un esquema supuesto como definitivo**.
 - Elegir herramientas y modelos con tiempos de arranque/entrenamiento dentro de los límites impuestos.
 
-## 9. Pendientes y riesgos por resolver
+## 9. Pendientes y riesgos iniciales — nota histórica superada
+
+La tabla siguiente es la lista previa al desarrollo y contiene asuntos ya resueltos o revaluados. No usarla como lista de pendientes actual. La sección 3 es la referencia vigente; los límites todavía abiertos se describen también en README.
 
 | Tema | Acción posterior |
 |---|---|
@@ -352,7 +358,9 @@ novamercado/
 | Fecha límite | Consultar GES; no consta en el PDF |
 | Ambigüedad de reglas puntuales de limpieza | Resolver con inspección de datos y registrar políticas explícitas en `DECISIONES.md` |
 
-## 10. Estado actual y primer paso pendiente
+## 10. Snapshot inicial de estado — histórico, superado
+
+Las casillas y la siguiente acción de esta sección corresponden al inicio del proyecto. Ya no representan el estado actual; consultar la sección 3 y las actualizaciones fechadas.
 
 - [x] PDF de 7 páginas revisado y requisitos extraídos.
 - [x] Plan y matriz de cumplimiento documentados.
@@ -364,7 +372,14 @@ novamercado/
 
 **Siguiente acción sugerida:** guardar este archivo en la raíz del repositorio futuro; cuando estén disponibles los insumos, descargarlos y ejecutar la Fase 0 en Codex para ajustar matriz y secuencia según los datos reales. Hasta entonces, este documento es la referencia de planificación, no una declaración de que el laboratorio ya cumple requisitos.
 
-## 11. Actualización de avance — 2026-11-14
+## 11. Bitácora histórica de avance
+
+Las subsecciones fechadas son registros de lo que se sabía y verificaba en cada
+fase; pueden contener estados y pendientes que luego cambiaron. No eliminarlas
+ni usarlas para determinar cumplimiento actual. Contrastar avances posteriores
+con la matriz de la sección 3 y sus evidencias enlazadas.
+
+### Snapshot — 2026-11-14
 
 Esta actualización sustituye los estados iniciales anteriores sobre disponibilidad
 de insumos y repositorio: Git ya está inicializado con remoto `origin`; los cinco
@@ -661,3 +676,138 @@ Corregida fixture de integración para configurar modelo/datos antes del lifespa
 y respetar intervalo máximo 30 s. Evidencia: evidencias/bootstrap_fase6.json.
 Pendientes: primer entrenamiento real desde Registry vacío, readiness <=10 min
 en stack limpio y ciclo DAG completo. No se vaciaron volúmenes para verificarlos.
+
+
+### Fase 7 — Aceptación integral aislada
+
+Runner opt-in `scripts/verificar_integral.py --ejecutar`, con credenciales nuevas
+privadas en .e2e/, recursos Compose nuevos y guardas de aislamiento. Se construyeron
+imágenes propias antes del cronómetro. Registry inicial sin runs ni modelos:
+bootstrap real y health ok en **65,16 s** (límite 600 s).
+
+Observación del día posterior al histórico aceptada (1), idéntica devuelve 0;
+predicción del día siguiente real y versionada. POST administrativo disparó DAG
+real Airflow 3.3.2; estado exitoso en **28,71 s** (límite 600 s). Candidato versión
+2 sin mejora mínima del costo: conserva champion 1, con decisión auditada.
+No se certifica aquí una promoción efectiva ni su propagación en el stack.
+
+Reinicio real DB/MLflow/API conserva observación (reenvío 0), runs y modelos;
+bootstrap repetido reutiliza champion y no duplica entrenamiento. Se detuvieron
+solo los contenedores aislados, preservando todos sus volúmenes. Inventario
+principal idéntico antes/después: mismos 14 IDs de runs, versiones y champion 1.
+Evidencia: evidencias/fase7_integral.json.
+
+Pendientes de aceptación extendida: promoción efectiva en stack y recarga <=2 min,
+simulación diaria prolongada/cambio de demanda y caída/retorno MLflow en stack
+completo. No se crea tag de entrega ni se publica en esta fase.
+
+Regresión final Fase 7: **281 passed, 0 skipped**, incluidas las pruebas SDK con
+DAG real sobre PostgreSQL y MLflow de pytest aislados. Inventario principal
+verificado de nuevo tras pytest: sin cambios. No se borró ningún volumen.
+
+
+### Fase 7 — Promoción efectiva y resiliencia completadas
+
+Escenario sintético determinista en otro Compose aislado: 420 días históricos y
+140 días posteriores con salto de demanda, predicción D → observación D antes
+de predecir D+1. DAG normal, sin alterar política, métricas ni alias manualmente.
+Candidato 2 promovido sobre 1: costo 717 vs 30897 con evaluación homogénea.
+`/modelo` y predicción real usan versión 2 en **13,24 s** desde `end_date` del
+DAG; mismo ID y StartedAt del contenedor API. Límite 120 s satisfecho.
+
+Se detuvo solo MLflow aislado: health 200 degradado en **1,38 s** (<60 s),
+15 predicciones con respuesta idéntica y versión 2; se mantuvo la caída hasta
+observar refresco fallido. Tras start, health ok en **29,03 s** (<120 s), con
+modelo/predicción conservados y sin reiniciar API. Reinicio posterior conserva
+Registry y observaciones, bootstrap no duplica runs. Contenedores aislados
+detenidos al acabar; todos los volúmenes conservados.
+
+Inventario principal idéntico: 14 runs, mismas versiones y champion 1. Evidencias:
+`evidencias/fase7_resiliencia.json`, `evidencias/fase7_promocion_comparacion.csv`,
+`evidencias/fase7_promocion_decision.md`. Certifica la operación en escenario
+sintético controlado; no representa una mejora predictiva en datos GES.
+
+Regresión final de promoción/resiliencia: **284 passed, 0 skipped** con PostgreSQL
+y MLflow propios de pytest, incluidas ejecuciones SDK de DAG. Inventario principal
+verificado otra vez tras pytest: idéntico (14 runs y champion 1). No quedan
+pendientes las verificaciones de promoción/recarga ni caída/retorno solicitadas.
+
+
+### Fase 8 — Evidencias P1 (R02–R05, R07, R10–R12, R17)
+
+Suite focalizada en entorno aislado: **177 passed, 0 failed, 0 skipped, 2 deselected**
+(los dos casos de DAG que entrenan). URI MLflow heredada apuntó a un puerto sin
+servidor; fixtures de pruebas usaron stores temporales. PostgreSQL temporal de
+pruebas con tmpfs fue detenido al acabar.
+
+En la DB Compose aislada que ya contenía la prueba integral, se reinició PostgreSQL
+y luego se consultó SQL: 4 solicitudes, 1 predicción, 1 acción de calidad,
+1 observación, 1 historial; versión persistida 1. El servicio DB fue detenido después.
+R10: 6.720 casos, 2026-01-04–2026-02-28; costo baseline 239.897,90 y HGB 197.537,70
+(reducción 17,66%). R11: costo por CSV y pruebas de costos asimétricos. R12: Registry
+principal consultado solo lectura: 14 runs, versiones 1/2 READY con runs FINISHED,
+artefactos de código/configuración/evaluación/linaje; champion 1. Inventario igual
+a evidencia previa. R17: errores y no promoción cubiertos por pruebas y ejecución
+Compose aislada; candidato descartado conservó versión 1.
+
+Detalle y conteos: `evidencias/auditoria_p1.json`. No se alteró el champion ni se
+borró ningún volumen.
+
+
+### Fase 8.2 — Documentación consolidada (2026-11-15)
+
+README, AGENTS y DECISIONES se contrastaron con el PDF, Compose, código y
+evidencias existentes. No ejecutó pytest ni contenedores. La matriz de la
+sección 3 es la única tabla de cumplimiento vigente.
+
+### Fase 8.3 — Cierre documental de R28/R30 (2026-11-15)
+
+Se completó `DECISIONES.md` con el inventario de variables de `.env.example`,
+alternativas consideradas y razones de las decisiones finales. Se agregaron
+capturas 200/422 de ambas rutas de negocio en `evidencias/respuestas_api.json`;
+el archivo distingue respuestas HTTP obtenidas con dobles de contrato y una
+predicción observada en Compose aislado con su modelo y escenario sintético.
+Los registros de observaciones y de DAG/MLflow se conservan en las evidencias
+de Fases 3 y 7. R28 y R30 quedan verificados documentalmente bajo esos límites.
+
+README ahora recomienda esperar/reintentar `/health` hasta `estado=ok` (máximo
+10 minutos) y consultar logs al vencer. Las secciones 4, 5, 9, 10 y las notas
+fechadas de fases previas se identifican como decisiones iniciales, snapshots
+históricos o bitácora, no como estado actual. Evidencias históricas que indiquen
+pendientes posteriormente cerrados no se borran: su fecha y evidencia posterior
+permiten reconocerlas como superadas.
+
+Esta fase fue documental y de captura local del contrato HTTP con TestClient;
+no ejecutó pytest, Docker, reentrenamiento ni alteró MLflow/DB. Siguen abiertos
+R26 (clon limpio), R29 (tag y acceso remoto) y R31 (simulación extendida de
+errores inéditos/drift). La parte R30 de errores HTTP queda respaldada por las
+capturas de contrato, no por respuestas de un servicio desplegado.
+
+### Fase 8.4 — Simulación extendida R31 (2026-11-15)
+
+Runner `scripts/verificar_integral.py --ejecutar --resiliencia` extendido y
+ejecutado en proyecto nuevo `novamercado-e2e-821390f461`. Los datos sintéticos
+contienen 420 días de historia estable y un salto de demanda 120→320 durante
+140 días simulados. Cada día se pronosticó antes de observar la venta del mismo
+día; la observación se incorporó antes del pronóstico siguiente. Se insertaron
+12 rechazos HTTP 422 de tres tipos no incluidos como ejemplos concretos del
+catálogo: familia nueva desconocida, venta fraccionaria y duplicado contradictorio.
+
+Hubo reentrenamientos al completar 35, 70 y 105 días, más una evaluación final
+al día 140. Todos terminaron en estado exitoso; el champion se actualizó en los
+casos que mejoraron y FastAPI sirvió la versión vigente. La ejecución reinició
+product-db/API al día 70, MLflow/API al día 105, y al cierre reinició
+product-db/MLflow/API. También se detuvo y recuperó MLflow: salud degradada en
+1,13 s, recuperación en 30,34 s y predicciones continuaron usando versión 5.
+Tras el último reinicio se verificaron health ok, Registry sin duplicación de
+bootstrap y reenvío idéntico de observación con 0 registros.
+
+El reporte confirma que el inventario principal tuvo 14 runs antes/después y
+conservó champion 1. Las pruebas no modificaron la política de promoción. La
+primera iteración encontró y corrigió en el runner una comprobación prematura
+del refresco del alias; su diagnóstico queda en
+`evidencias/r31_iteracion_fallo_refresco.json` y no se considera una aceptación
+fallida del producto. Resultado final completo en
+`evidencias/r31_operacion_extendida.json`. Esta simulación cierra R31 para los
+escenarios ejecutados, no representa el comportamiento futuro del GES ni
+sustituye R26 (clon limpio) o R29 (tag y acceso remoto).

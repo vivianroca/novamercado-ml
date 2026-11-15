@@ -25,7 +25,7 @@ def crear_app() -> FastAPI:
             if app.state.predictor is not None:
                 app.state.predictor.cerrar()
 
-    instancia = FastAPI(title="NovaMercado", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+    instancia = FastAPI(title="NovaMercado", lifespan=lifespan)
     instancia.state.predictor_lock = threading.Lock()
     instancia.state.predictor = None
     instancia.include_router(router)
